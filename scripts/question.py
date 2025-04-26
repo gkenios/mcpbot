@@ -9,14 +9,14 @@ CONVERSATION_ID = "mcpbot"
 EMAIL = "georgios.gkenios@devoteam.com"
 
 match OPTION:
-     case 1:
-         QUESTION = "What are the holidays for this year?"
-     case 2:
-         QUESTION = "Can you book a desk for me for next Sunday? I need a dual screen."
-     case 3:
-         QUESTION = "Can you unbook my desk for next Sunday?"
-     case _:
-         raise SystemExit("Invalid option. Please choose 1, 2, or 3.")
+    case 1:
+        QUESTION = "What are the holidays for this year?"
+    case 2:
+        QUESTION = "Can you book a desk for me for next Sunday? I need a dual screen."
+    case 3:
+        QUESTION = "Can you unbook my desk for next Sunday?"
+    case _:
+        raise SystemExit("Invalid option. Please choose 1, 2, or 3.")
 
 
 async def main():
