@@ -69,10 +69,10 @@ class ChatDB(ABC):
         conversation_id: str,
         n_messages: int,
     ) -> None:
-        message_ids = self.list_messages(conversation_id)
-        if len(message_ids) > n_messages:
-            for message_id in message_ids[n_messages:]:
-                self.delete_message(message_id, conversation_id)
+        messages = self.list_messages(conversation_id)
+        if len(messages) > n_messages:
+            for message_id in messages[n_messages:]:
+                self.delete_message(message_id.id, conversation_id)
 
     def update_conversation_timestamp(
         self,
@@ -207,7 +207,7 @@ class JsonChatDB(ChatDB):
         if not messages.exists():
             return []
         return [
-            Message(read_file(message))
+            Message(**read_file(message))
             for message in sorted(
                 messages.iterdir(),
                 key=lambda x: x.stat().st_mtime,

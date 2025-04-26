@@ -1,6 +1,6 @@
 from fastapi.responses import StreamingResponse
 from fastapi.routing import APIRouter
-from langchain_core.messages import AIMessage, BaseMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
 
@@ -9,6 +9,12 @@ from mcpbot.shared.auth import UserAuth
 from mcpbot.shared.config import PORT
 from mcpbot.shared.init import config
 
+
+MESSAGE_LIMIT = 6
+MESSAGE_MAP: dict[str, BaseMessage] = {
+    "human": HumanMessage,
+    "ai": AIMessage,
+}
 
 router_v1 = APIRouter(prefix="/v1")
 
@@ -21,16 +27,21 @@ async def messages_create(
 ) -> str:
     db_messages = config.databases.chat["messages"]
     history = [
-        BaseMessage(content=entry["text"], type=entry["role"])
+        MESSAGE_MAP[entry.role](content=entry.text)
         for entry in db_messages.list_messages(conversation_id)
-    ] + [BaseMessage(content=message, type="human")]
+    ]
+    history.append(HumanMessage(content=message))
     return StreamingResponse(
         chat_streamer(history, conversation_id, user.user_id),
         media_type="text/event-stream",
     )
 
 
-async def chat_streamer(message, conversation_id, user_id):
+async def chat_streamer(
+    messages: list[BaseMessage],
+    conversation_id: str,
+    user_id: str
+):
     llm = config.models.llm
     full_response = ""
     async with MultiServerMCPClient(
@@ -50,24 +61,30 @@ async def chat_streamer(message, conversation_id, user_id):
             prompt=client_prompt(),
             version="v2",
         )
-        stream = agent.astream({"messages": message}, stream_mode="messages")
+        stream = agent.astream({"messages": messages}, stream_mode="messages")
         async for chunk, _ in stream:
             if isinstance(chunk, AIMessage):
                 full_response += chunk.content
                 yield chunk.content
 
-
     # Create the message in the database
-    db = config.databases.chat["messages"]
-    db.create_message(
+    db_messages = config.databases.chat["messages"]
+    db_conv = config.databases.chat["conversations"]
+
+    db_messages.delete_over_n_messages(
+        conversation_id=conversation_id,
+        n_messages=MESSAGE_LIMIT,
+    )
+    db_messages.create_message(
         conversation_id=conversation_id,
         user_id=user_id,
         role="human",
-        text=message,
+        text=messages[-1].content,
     )
-    db.create_message(
+    db_messages.create_message(
         conversation_id=conversation_id,
         user_id=user_id,
         role="ai",
         text=full_response,
     )
+    db_conv.update_conversation_timestamp(conversation_id, user_id=user_id)
