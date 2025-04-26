@@ -1,6 +1,7 @@
 import httpx
 from mcp.server.fastmcp import Context
 
+from mcpbot.server.context import get_meta_context_value
 from mcpbot.shared.init import config
 
 
@@ -11,7 +12,7 @@ def unbook_desk(context: Context, date: str) -> str:
         date: The date of the reservation in the format "YYYY-MM-DD".
     """
     # Context
-    user_email = context.client_id
+    user_email = get_meta_context_value(context, "user_email")
 
     # Secrets
     secrets = config.secrets

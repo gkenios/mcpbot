@@ -27,8 +27,13 @@ class Message(BaseModel):
 
 
 class ChatDB(ABC):
-    def create_conversation(self, user_id: str) -> None:
-        conversation_id = uuid4().hex
+    def create_conversation(
+        self,
+        user_id: str,
+        conversation_id: str | None = None
+    ) -> None:
+        if not conversation_id:
+            conversation_id = uuid4().hex
         timestamp = datetime.now(UTC).isoformat()
         conversation = Conversation(
             id=conversation_id,

@@ -34,7 +34,7 @@ async def chat_streamer(message, user_id):
                 "url": f"http://localhost:{PORT}/mcp",
                 "transport": "sse",
                 "headers": {
-                    "client_id": user_id,
+                    "user_email": user_id,
                 },
             }
         }

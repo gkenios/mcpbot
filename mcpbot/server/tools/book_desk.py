@@ -1,8 +1,8 @@
 import httpx
 import re
-
 from mcp.server.fastmcp import Context
 
+from mcpbot.server.context import get_meta_context_value
 from mcpbot.shared.init import config
 
 
@@ -30,7 +30,7 @@ def book_desk(
           The default value is single monitor.
     """
     # Context
-    user_email = context.client_id
+    user_email = get_meta_context_value(context, "user_email")
 
     # Secrets
     secrets = config.secrets

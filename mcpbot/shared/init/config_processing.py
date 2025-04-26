@@ -71,7 +71,7 @@ class ConfigSingleton(metaclass=Singleton):
         if db.chat:
             if isinstance(db.chat.collection, str):
                 kwargs = {
-                    key: value for key, value in db.vector.__dict__.items()
+                    key: value for key, value in db.chat.__dict__.items()
                     if key != "host"
                 }
                 chat_db = ChatDBFactory[db.chat.host].value(**kwargs)
@@ -79,7 +79,7 @@ class ConfigSingleton(metaclass=Singleton):
                 collections = dict()
                 for collect_key, collect_value in db.chat.collection.items():
                     kwargs = {
-                        key: value for key, value in db.vector.__dict__.items()
+                        key: value for key, value in db.chat.__dict__.items()
                         if key != "host"
                     }
                     kwargs["collection"] = collect_value

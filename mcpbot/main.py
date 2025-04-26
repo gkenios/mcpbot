@@ -10,15 +10,11 @@ from mcpbot.client.conversations import (
 from mcpbot.client.messages import (
     messages_create,
 )
-from mcpbot.server import (
-    prompts,
-    tools,
-    add_prompts_from_module,
-    add_tools_from_module,
-    inject_meta_context,
-)
-from mcpbot.shared.auth import validate_user
+from mcpbot.server import prompts, tools
+from mcpbot.server.common import add_prompts_from_module, add_tools_from_module
+from mcpbot.server.context import MetaContext, inject_meta_context
 from mcpbot.shared import token
+from mcpbot.shared.auth import validate_user
 
 
 TITLE = "MCP Client & Server"
@@ -78,7 +74,7 @@ async def add_process_time_header(request: Request, call_next):
         return await call_next(request)
     # If it's an MCP Server request but it is local, skip authentication
     elif is_mcp_call and is_local_call:
-        email = request.headers.get("client_id")
+        email = request.headers.get("user_email")
     # If it's an external MCP Server request, authenticate the user
     else:
         token = request.headers.get("Authorization")
@@ -94,6 +90,6 @@ async def add_process_time_header(request: Request, call_next):
         email = user.user_id
 
     # Inject the user email into the meta context
-    meta_context = {"client_id": email}
+    meta_context = MetaContext(user_email=email)
     request = await inject_meta_context(request, meta_context)
     return await call_next(request)
