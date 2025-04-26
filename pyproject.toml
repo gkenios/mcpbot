@@ -19,6 +19,7 @@ dependencies = [
     "pyjwt>=2.10.1",
     "python-multipart>=0.0.20",
     "pytz>=2025.2",
+    "types-pytz>=2025.2.0.20250326",
 ]
 
 [dependency-groups]

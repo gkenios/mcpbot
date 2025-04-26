@@ -8,10 +8,12 @@ from jinja2 import Template
 
 
 class File(ABC):
+    @classmethod
     @abstractmethod
     def read_file(cls, path: str) -> Any:
         raise NotImplementedError
 
+    @classmethod
     @abstractmethod
     def write_file(cls, path: str, content: Any) -> None:
         raise NotImplementedError
@@ -47,6 +49,8 @@ def read_file(
     file_path: str | Path,
     context: dict[str, Any] | None = None,
 ) -> Any:
+    """Reads a file of the type .yaml, .yml or .json and returns the content."""
+    obj: type[File]
     if isinstance(file_path, Path):
         file_path = str(file_path)
     if file_path.endswith(".yaml") or file_path.endswith(".yml"):
@@ -62,6 +66,8 @@ def read_file(
 
 
 def write_file(file_path: str, content: Any) -> None:
+    """Writes a file of the type .yaml, .yml or .json."""
+    obj: type[File]
     if file_path.endswith(".yaml") or file_path.endswith(".yml"):
         obj = YamlFile
     elif file_path.endswith(".json"):

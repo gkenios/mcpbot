@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -11,6 +11,7 @@ from mcpbot.shared.utils import read_file, write_file
 
 
 OrderBy = Literal["ASC", "DESC"]
+Role = Literal["human", "ai"]
 
 
 class Conversation(BaseModel):
@@ -24,7 +25,7 @@ class Message(BaseModel):
     id: str
     conversation_id: str
     user_id: str
-    role: Literal["human", "ai"]
+    role: Role
     text: str
     created_at: str
 
@@ -46,7 +47,7 @@ class ChatDB(ABC):
         return conversation
 
     def create_message(
-        self, conversation_id: str, user_id: str, role: str, text: str
+        self, conversation_id: str, user_id: str, role: Role, text: str
     ) -> Message:
         message_id = uuid4().hex
         timestamp = datetime.now(UTC).isoformat()
@@ -77,6 +78,8 @@ class ChatDB(ABC):
         user_id: str,
     ) -> None:
         conversation = self.get_conversation(conversation_id, user_id)
+        if not conversation:
+            return
         conversation.last_updated_at = datetime.now(UTC).isoformat()
         self._update_conversation(conversation)
 
@@ -130,7 +133,7 @@ class JsonChatDB(ChatDB):
         self,
         endpoint: str,
         collection: str,
-        **kwargs,
+        **kwargs: Any,
     ):
         self.path = f"{endpoint}/{collection}"
 
