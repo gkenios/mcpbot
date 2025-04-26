@@ -21,6 +21,9 @@ def unbook_desk(context: Context[Any, Any], date: str) -> str:
     client_secret = secrets["joan_client_secret"]
     company_id = secrets["joan_company_id"]
 
+    if not user_email:
+        return "User not identified."
+
     token = get_token(client_id, client_secret)
     user_id, _ = get_user_id(token, company_id, user_email)
     if not user_id:
@@ -31,16 +34,23 @@ def unbook_desk(context: Context[Any, Any], date: str) -> str:
 
 
 # JOAN API functions
-def get_token(client_id, secret):
+def get_token(client_id: str, client_secret: str) -> str:
     response = httpx.post(
         "https://portal.getjoan.com/api/token/",
         data={"grant_type": "client_credentials", "scope": "read write"},
-        auth=(client_id, secret),
-    )
-    return response.json()["access_token"]
+        auth=(client_id, client_secret),
+    ).json()
+    if not response:
+        raise ValueError("Invalid client_id or client_secret")
+    token = response.get("access_token")
+    if not isinstance(token, str):
+        raise ValueError("Invalid client_id or client_secret")
+    return token
 
 
-def get_user_id(token: str, company_id: str, email: str) -> tuple[str, bool]:
+def get_user_id(
+    token: str, company_id: str, email: str
+) -> tuple[str | None, bool]:
     response = httpx.get(
         f"https://portal.getjoan.com/api/2.0/desk/company/{company_id}/users",
         headers={"Authorization": f"Bearer {token}"},
@@ -71,6 +81,7 @@ def get_desk_reservation(
     ).json()
     if response:
         return [desk["id"] for desk in response]
+    return None
 
 
 def delete_desk_reservation(

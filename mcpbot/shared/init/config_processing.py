@@ -1,3 +1,5 @@
+from typing import TypedDict
+
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 
@@ -55,26 +57,32 @@ class ConfigSingleton(metaclass=Singleton):
         )
 
     def get_databases(self) -> AppDatabases:
+        class DBTypes(TypedDict):
+            chat: dict[str, ChatDB]
+            vector: dict[str, VectorDB]
+
         db = self.config.databases
-        app_databases_kwargs = {"chat": None, "vector": None}
+        app_databases_kwargs: DBTypes = {"chat": dict(), "vector": dict()}
         database_objects = [ChatDBFactory, VectorDBFactory]
 
         for key, obj in zip(app_databases_kwargs.keys(), database_objects):
-            db_type: DatabaseConfig = getattr(db, key)
-            collection = dict()
-            for collect_key, collect_value in db_type.collections.items():
+            db_config: DatabaseConfig = getattr(db, key)
+            db_factory: ChatDB | VectorDB = obj[db_config.host].value
+
+            collection: dict[str, DBTypes] = dict()
+            for collect_key, collect_value in db_config.collections.items():
                 # Define the kwargs for the DBFactory object
                 kwargs = {
                     key: value
-                    for key, value in db_type.__dict__.items()
+                    for key, value in db_config.__dict__.items()
                     if key != "host"
                 }
                 kwargs["collection"] = collect_value
                 if key == "vector":
                     kwargs["embeddings"] = self.models.embeddings
 
-                collection[collect_key] = obj[db_type.host].value(**kwargs)
-            app_databases_kwargs[key] = collection
+                collection[collect_key] = db_factory(**kwargs)  # type: ignore [operator]
+            app_databases_kwargs[key] = collection  # type: ignore [literal-required]
         return AppDatabases(**app_databases_kwargs)
 
     def get_secrets(self) -> dict[str, str]:

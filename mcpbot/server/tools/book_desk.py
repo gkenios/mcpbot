@@ -40,6 +40,9 @@ def book_desk(
     client_secret = secrets["joan_client_secret"]
     company_id = secrets["joan_company_id"]
 
+    if not user_email:
+        return "User not identified."
+
     token = get_token(client_id, client_secret)
     user_id, is_admin = get_user_id(token, company_id, user_email)
     if not user_id:
@@ -56,7 +59,7 @@ def book_desk(
     if number_of_seats < people:
         return f"You requested desks for {people} people, but only {number_of_seats} are available."
 
-    excluded_seats = []
+    excluded_seats: list[str] = []
     for i in range(people):
         seat_id = get_seat_id(
             token,
@@ -74,13 +77,18 @@ def book_desk(
 
 
 # JOAN API functions
-def get_token(client_id, secret):
+def get_token(client_id: str, client_secret: str) -> str:
     response = httpx.post(
         "https://portal.getjoan.com/api/token/",
         data={"grant_type": "client_credentials", "scope": "read write"},
-        auth=(client_id, secret),
-    )
-    return response.json()["access_token"]
+        auth=(client_id, client_secret),
+    ).json()
+    if not response:
+        raise ValueError("Invalid client_id or client_secret")
+    token = response.get("access_token")
+    if not isinstance(token, str):
+        raise ValueError("Invalid client_id or client_secret")
+    return token
 
 
 def get_user_id(token: str, company_id: str, email: str) -> tuple[str, bool]:
