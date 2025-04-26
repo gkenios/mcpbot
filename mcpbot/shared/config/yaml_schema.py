@@ -10,7 +10,7 @@ _SUPPORTED_CLOUD_PROVIDERS = ["azure", "gcp"]
 class DatabaseConfig(BaseModel):
     host: Literal["local", "azure"]
     endpoint: str
-    collection: str | dict[str, str]
+    collections: dict[str, str]
     database: str | None = None
     api_key: str | None = None
 

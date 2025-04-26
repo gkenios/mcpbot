@@ -9,7 +9,7 @@ def rag(question: str) -> str:
     Args:
         question: The question to answer.
     """
-    db_vector = config.databases.vector
+    db_vector = config.databases.vector["faq"]
     retrieve = db_vector.search(
         question=question,
         method="cosine",

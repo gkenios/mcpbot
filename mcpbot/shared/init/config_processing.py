@@ -1,7 +1,7 @@
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 
-from mcpbot.shared.config import CONFIG_FILE, YamlConfig
+from mcpbot.shared.config import CONFIG_FILE, DatabaseConfig, YamlConfig
 from mcpbot.shared.services import (
     ChatDB,
     ChatDBFactory,
@@ -15,8 +15,8 @@ from mcpbot.shared.utils import ArbitaryTypesModel, Singleton, read_file
 
 
 class AppDatabases(ArbitaryTypesModel):
-    chat: ChatDB | dict[str, ChatDB]
-    vector: VectorDB
+    chat: dict[str, ChatDB]
+    vector: dict[str, VectorDB]
 
 
 class AppModels(ArbitaryTypesModel):
@@ -56,44 +56,26 @@ class ConfigSingleton(metaclass=Singleton):
 
     def get_databases(self) -> AppDatabases:
         db = self.config.databases
-        if db.vector:
-            kwargs = {
-                key: value
-                for key, value in db.vector.__dict__.items()
-                if key != "host"
-            }
-            vector_db = VectorDBFactory[db.vector.host].value(
-                embeddings=self.models.embeddings,
-                **kwargs,
-            )
-        else:
-            vector_db = None
+        app_databases_kwargs = {"chat": None, "vector": None}
+        database_objects = [ChatDBFactory, VectorDBFactory]
 
-        if db.chat:
-            if isinstance(db.chat.collection, str):
+        for key, obj in zip(app_databases_kwargs.keys(), database_objects):
+            db_type: DatabaseConfig = getattr(db, key)
+            collection = dict()
+            for collect_key, collect_value in db_type.collections.items():
+                # Define the kwargs for the DBFactory object
                 kwargs = {
                     key: value
-                    for key, value in db.chat.__dict__.items()
+                    for key, value in db_type.__dict__.items()
                     if key != "host"
                 }
-                chat_db = ChatDBFactory[db.chat.host].value(**kwargs)
-            elif isinstance(db.chat.collection, dict):
-                collections = dict()
-                for collect_key, collect_value in db.chat.collection.items():
-                    kwargs = {
-                        key: value
-                        for key, value in db.chat.__dict__.items()
-                        if key != "host"
-                    }
-                    kwargs["collection"] = collect_value
-                    chat_db = ChatDBFactory[db.chat.host].value(**kwargs)
-                    collections[collect_key] = chat_db
-                chat_db = collections
-            else:
-                raise ValueError("Collection must be a string or a dictionary.")
-        else:
-            chat_db = None
-        return AppDatabases(chat=chat_db, vector=vector_db)
+                kwargs["collection"] = collect_value
+                if key == "vector":
+                    kwargs["embeddings"] = self.models.embeddings
+
+                collection[collect_key] = obj[db_type.host].value(**kwargs)
+            app_databases_kwargs[key] = collection
+        return AppDatabases(**app_databases_kwargs)
 
     def get_secrets(self) -> dict[str, str]:
         secrets = dict()

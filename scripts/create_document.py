@@ -4,7 +4,7 @@ from mcpbot.shared.utils import read_file
 
 WRITE = False
 
-db_vector = config.databases.vector
+db_vector = config.databases.vector["faq"]
 if WRITE:
     for document in read_file("faq.yml"):
         id = document["title"]

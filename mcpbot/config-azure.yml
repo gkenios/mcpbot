@@ -3,7 +3,7 @@ databases:
     host: azure  # Host names in [local, azure]
     endpoint: https://dvtm-gkenios-uva-dev-nosql.documents.azure.com:443/
     database: devoteam-nl-chat
-    collection:
+    collections:
       conversations: conversations
       messages: messages
     api_key: "{{ db_chat_key }}"
@@ -11,7 +11,8 @@ databases:
     host: azure
     endpoint: https://dvtm-gkenios-uva-dev-nosql.documents.azure.com:443/
     database: devoteam-nl-mcp
-    collection: faq
+    collections:
+      faq: faq
     api_key: "{{ db_vector_key }}"
 
 models:

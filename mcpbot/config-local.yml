@@ -2,13 +2,14 @@ databases:
   chat:
     host: local  # Host names in [local, azure]
     endpoint: ./.chatdb
-    collection:
+    collections:
       conversations: conversations
       messages: messages
   vector:
     host: local
     endpoint: ./.chromadb
-    collection: faq
+    collections:
+      faq: faq
 
 models:
   llm:
@@ -38,4 +39,3 @@ secrets:
         value: JOANCOMPANYID
       - name: llm_key
         value: LLM
-  
