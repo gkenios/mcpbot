@@ -19,7 +19,7 @@ async def conversations_create(user: UserAuth) -> Conversation:
     - last_updated_at: The timestamp when the conversation was last updated.
     """
     # In this implementation, we want 1 conversation per user.
-    conversation_id = user.user_id
+    conversation_id = user.user_id.split("@")[0]
     
     db = config.databases.chat["conversations"]
     if existing_conv := db.get_conversation(conversation_id, user.user_id):

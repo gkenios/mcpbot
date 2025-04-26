@@ -8,7 +8,6 @@ from mcpbot.shared.auth import UserAuth
 router_v1 = APIRouter(prefix="/v1")
 
 
-
 @router_v1.patch("conversations/{conversation_id}/messages/{message_id}")
 async def messages_patch(
     user: UserAuth,
@@ -16,9 +15,13 @@ async def messages_patch(
     message_id: str,
     body: MessagesBody,
 ):
+    """Updates a message in the conversation. First, it deletes the message
+    and all messages after it in the conversation. Then, it creates a new
+    message with the new content.
+    """
     await messages_delete(
         user=user,
         conversation_id=conversation_id,
         message_id=message_id,
     )
-    return messages_create(user, conversation_id, body)
+    return await messages_create(user, conversation_id, body)

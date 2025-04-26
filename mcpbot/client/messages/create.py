@@ -30,6 +30,7 @@ async def messages_create(
     conversation_id: str,
     body: MessagesBody,
 ) -> str:
+    """Creates a new message in the conversation. The answer is streamed."""
     db_messages = config.databases.chat["messages"]
     history = [
         MESSAGE_MAP[entry.role](content=entry.text)

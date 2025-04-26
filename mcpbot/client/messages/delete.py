@@ -15,7 +15,7 @@ async def messages_delete(
     conversation_id: str,
     message_id: str,
 ) -> dict[str, Any]:
-    """Lists all messages of a conversation."""
+    """Deletes a message and all messages after it in the conversation."""
     db = config.databases.chat["messages"]
     ordered_messages = db.list_messages(conversation_id, order_by="DESC")
     if message_id not in [message.id for message in ordered_messages]:

@@ -5,7 +5,6 @@ from mcpbot.shared.config import PORT
 
 
 OPTION = 1
-CONVERSATION_ID = "mcpbot"
 EMAIL = "georgios.gkenios@devoteam.com"
 
 match OPTION:
@@ -26,11 +25,19 @@ async def main():
     ).json()["access_token"]
 
     async with httpx.AsyncClient(timeout=None) as client:
+        # Create a conversation
+        response = await client.post(
+            url=f"http://localhost:{PORT}/v1/conversations",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        conversation_id = response.json()["id"]
+
+        # Send a message to the conversation
         async with client.stream(
             method="POST",
-            url=f"http://localhost:{PORT}/v1/{CONVERSATION_ID}/messages",
+            url=f"http://localhost:{PORT}/v1/conversations/{conversation_id}/messages",
             headers={"Authorization": f"Bearer {token}"},
-            params={"message": QUESTION}
+            json={"message": QUESTION},
         ) as response:
             async for chunk in response.aiter_text():
                 await asyncio.sleep(0.01)
