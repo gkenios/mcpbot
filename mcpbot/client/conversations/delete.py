@@ -1,3 +1,4 @@
+from typing import Any
 from fastapi import APIRouter
 
 from mcpbot.shared.auth import UserAuth
@@ -8,7 +9,11 @@ router_v1 = APIRouter(prefix="/v1")
 
 
 @router_v1.delete("/conversations/{conversation_id}")
-async def conversations_delete(conversation_id: str, user: UserAuth) -> None:
+async def conversations_delete(
+    conversation_id: str,
+    user: UserAuth,
+) -> dict[str, Any]:
     """Deletes a conversation by its ID."""
     db = config.databases.chat["conversations"]
-    return db.delete_conversation(conversation_id, user.user_id)
+    db.delete_conversation(conversation_id, user.user_id)
+    return {}
