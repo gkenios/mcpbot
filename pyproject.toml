@@ -20,3 +20,20 @@ dependencies = [
     "python-multipart>=0.0.20",
     "pytz>=2025.2",
 ]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "pre-commit>=4.2.0",
+    "ruff>=0.11.7",
+    "types-pyyaml>=6.0.12.20250402",
+]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.12",
+    "mkdocstrings-python>=1.16.10",
+    "termynal>=0.13.0",
+]
+tests = [
+    "pytest>=8.3.5",
+]

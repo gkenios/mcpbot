@@ -10,7 +10,7 @@ on:
       - '.github/workflows/docs.yml'
 
 env:
-  PYTHON_VERSION: "3.12"
+  PYTHON_VERSION: "3.13"
   REQUIREMENTS_GROUP: docs
 
 permissions:
