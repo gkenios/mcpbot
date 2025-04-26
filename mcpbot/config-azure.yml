@@ -1,34 +1,32 @@
 databases:
   chat:
-    host: azure  # Host names in [local, azure]
+    api_key: "{{ db_chat_key }}"
     endpoint: https://dvtm-gkenios-uva-dev-nosql.documents.azure.com:443/
     database: devoteam-nl-chat
     collections:
       conversations: conversations
       messages: messages
-    api_key: "{{ db_chat_key }}"
   vector:
-    host: azure
+    api_key: "{{ db_vector_key }}"
     endpoint: https://dvtm-gkenios-uva-dev-nosql.documents.azure.com:443/
     database: devoteam-nl-mcp
     collections:
       faq: faq
-    api_key: "{{ db_vector_key }}"
 
 models:
-  llm:
-    api_key: "{{ llm_key }}"  # "{{ <secret> }}" references a secret by name
-    api_url: https://openai-devoteam.openai.azure.com/
-    api_version: "2024-10-21"  # Optional parameter
-    model: gpt-4o-mini
   embeddings:
     api_key: "{{ embeddings_key }}"
     api_url: https://openai-devoteam.openai.azure.com/
     api_version: "2024-10-21" # https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation#latest-ga-api-release
     model: text-embedding-ada-002
+  llm:
+    api_key: "{{ llm_key }}"  # "{{ <secret> }}" references a secret by name
+    api_url: https://openai-devoteam.openai.azure.com/
+    api_version: "2024-10-21"  # Optional parameter
+    model: gpt-4o-mini
 
 secrets:
-  hosts:  # Host names in [local, azure]
+  hosts:  # Host names in [local, azure]. Local reads from environment variables
   - name: azure
     vaults:
     - name: dvtm-gkenios-uva-dev-kv

@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from enum import Enum
 from typing import Any
 
 from langchain_core.embeddings.embeddings import Embeddings
@@ -153,7 +152,23 @@ class GCPVectorDB(VectorDB):
     pass
 
 
-class VectorDBFactory(Enum):
-    local = ChromaVectorDB
-    azure = AzureCosmosVectorDB
-    gcp = GCPVectorDB
+def get_vector_db(
+    embeddings: Embeddings,
+    collection: str,
+    endpoint: str,
+    **kwargs: Any,
+) -> VectorDB:
+    if "azure.com" in endpoint:
+        return AzureCosmosVectorDB(
+            embeddings=embeddings,
+            collection=collection,
+            endpoint=endpoint,
+            **kwargs,
+        )
+    else:
+        return ChromaVectorDB(
+            embeddings=embeddings,
+            collection=collection,
+            endpoint=endpoint,
+            **kwargs,
+        )

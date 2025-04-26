@@ -5,7 +5,7 @@ from mcpbot.shared.config import COMPANY, PORT
 
 
 OPTION = 1
-EMAIL = f"georgios.gkenios@{COMPANY}.com"
+EMAIL = f"georgios.gkenios@{COMPANY.lower()}.com"
 
 match OPTION:
     case 1:

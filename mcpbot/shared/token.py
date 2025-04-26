@@ -13,7 +13,7 @@ router = APIRouter()
 async def token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
-    is_correct_username = form_data.username.endswith(f"@{COMPANY}.com")
+    is_correct_username = form_data.username.endswith(f"@{COMPANY.lower()}.com")
     is_correct_password = form_data.password == "gg"
     authenticated = is_correct_username and is_correct_password
 

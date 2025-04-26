@@ -6,12 +6,12 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from mcpbot.shared.config import CONFIG_FILE, DatabaseConfig, YamlConfig
 from mcpbot.shared.services import (
     ChatDB,
-    ChatDBFactory,
     SecretFactory,
     VectorDB,
-    VectorDBFactory,
+    get_chat_db,
     get_embeddings,
     get_llm,
+    get_vector_db,
 )
 from mcpbot.shared.utils import ArbitaryTypesModel, Singleton, read_file
 
@@ -63,13 +63,12 @@ class ConfigSingleton(metaclass=Singleton):
 
         db = self.config.databases
         app_databases_kwargs: DBTypes = {"chat": dict(), "vector": dict()}
-        database_objects = [ChatDBFactory, VectorDBFactory]
+        database_pickers = [get_chat_db, get_vector_db]
 
-        for key, obj in zip(app_databases_kwargs.keys(), database_objects):
+        for key, picker in zip(app_databases_kwargs.keys(), database_pickers):
             db_config: DatabaseConfig = getattr(db, key)
-            db_factory: ChatDB | VectorDB = obj[db_config.host].value
-
             collection: dict[str, DBTypes] = dict()
+
             for collect_key, collect_value in db_config.collections.items():
                 # Define the kwargs for the DBFactory object
                 kwargs = {
@@ -81,7 +80,7 @@ class ConfigSingleton(metaclass=Singleton):
                 if key == "vector":
                     kwargs["embeddings"] = self.models.embeddings
 
-                collection[collect_key] = db_factory(**kwargs)  # type: ignore [operator]
+                collection[collect_key] = picker(**kwargs)  # type: ignore [operator]
             app_databases_kwargs[key] = collection  # type: ignore [literal-required]
         return AppDatabases(**app_databases_kwargs)
 

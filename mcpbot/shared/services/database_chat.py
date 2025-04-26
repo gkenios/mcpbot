@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
-from enum import Enum
 from pathlib import Path
 from typing import Any, Literal
 from uuid import uuid4
@@ -307,7 +306,16 @@ class GCPNoSQLDB(ChatDB):
     pass
 
 
-class ChatDBFactory(Enum):
-    local = JsonChatDB
-    azure = AzureCosmosChatDB
-    gcp = GCPNoSQLDB
+def get_chat_db(endpoint: str, collection: str, **kwargs: Any) -> ChatDB:
+    if "azure.com" in endpoint:
+        return AzureCosmosChatDB(
+            endpoint=endpoint,
+            collection=collection,
+            **kwargs,
+        )
+    else:
+        return JsonChatDB(
+            endpoint=endpoint,
+            collection=collection,
+            **kwargs,
+        )

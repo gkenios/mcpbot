@@ -1,12 +1,10 @@
 databases:
   chat:
-    host: local  # Host names in [local, azure]
     endpoint: ./.chatdb
     collections:
       conversations: conversations
       messages: messages
   vector:
-    host: local
     endpoint: ./.chromadb
     collections:
       faq: faq
@@ -24,7 +22,7 @@ models:
     model: text-embedding-ada-002
 
 secrets:
-  hosts:  # Host names in [local, azure]
+  hosts:  # Host names in [local, azure]. Local reads from environment variables
   - name: local
     vaults:
     - name: null
