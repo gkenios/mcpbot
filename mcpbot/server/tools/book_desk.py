@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, TypedDict
 
 import httpx
 from mcp.server.fastmcp import Context
@@ -91,7 +91,9 @@ def get_token(client_id: str, client_secret: str) -> str:
     return token
 
 
-def get_user_id(token: str, company_id: str, email: str) -> tuple[str, bool]:
+def get_user_id(
+    token: str, company_id: str, email: str
+) -> tuple[str | None, bool]:
     response = httpx.get(
         f"https://portal.getjoan.com/api/2.0/desk/company/{company_id}/users",
         headers={"Authorization": f"Bearer {token}"},
@@ -104,28 +106,34 @@ def get_user_id(token: str, company_id: str, email: str) -> tuple[str, bool]:
     return None, False
 
 
-def get_locations(token: str, company_id: str) -> list[dict]:
+class JoanLocation(TypedDict):
+    building_id: str
+    floor_id: str
+    floor: int
+    city: str
+
+
+def get_locations(token: str, company_id: str) -> list[JoanLocation]:
     response = httpx.get(
         f"https://portal.getjoan.com/api/2.0/desk/company/{company_id}/desk",
         headers={"Authorization": f"Bearer {token}"},
     ).json()
 
-    buildings = []
+    buildings: list[JoanLocation] = []
     # Used [:-1] to exclude G Cloud building
     for building in response["locations"][:-1]:
         for floor in building["maps"]:
             try:
-                level = int(re.search(r"\d+", floor["name"]).group())
+                level = int(re.search(r"\d+", floor["name"]).group())  # type: ignore
             except AttributeError:
                 level = 0
-            building_data = {
-                "building_id": building["id"],
-                "floor_id": floor["id"],
-                "floor": level,
-                "city": building["address"][
-                    "street"
-                ].lower(),  # #devoteam_data_quality
-            }
+            building_data = JoanLocation(
+                building_id=building["id"],
+                floor_id=floor["id"],
+                floor=level,
+                # Weird data quality for the city name
+                city=building["address"]["street"].lower(),
+            )
             buildings.append(building_data)
     return buildings
 
@@ -157,8 +165,8 @@ def create_desk_reservation(
     date: str,
     from_time: str = "09:00",
     to_time: str = "17:00",
-) -> dict:
-    response = httpx.post(
+) -> None:
+    httpx.post(
         f"https://portal.getjoan.com/api/2.0/desk/v2/company/{company_id}/reservation",
         json={
             "date": date,
@@ -170,7 +178,7 @@ def create_desk_reservation(
         },
         headers={"Authorization": f"Bearer {token}"},
     )
-    return response.json()
+    return None
 
 
 def get_number_of_free_seats(
@@ -205,6 +213,11 @@ def get_number_of_free_seats(
     return len(results)
 
 
+class JoanSeat(TypedDict):
+    id: str
+    name: str
+
+
 def get_seat_id(
     token: str,
     building_id: str,
@@ -227,11 +240,13 @@ def get_seat_id(
         },
         headers={"Authorization": f"Bearer {token}"},
     ).json()
-    results = response["results"]
+    if not response:
+        return None
+    results: list[JoanSeat] | None = response.get("results")
 
     # No available desks
-    if not results:
-        return
+    if not isinstance(results, list) or not results:
+        return None
 
     # If desk_name is not provided, get the first available desk
     if not desk_name:
