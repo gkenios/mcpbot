@@ -37,3 +37,10 @@ docs = [
 tests = [
     "pytest>=8.3.5",
 ]
+
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
