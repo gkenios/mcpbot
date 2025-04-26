@@ -1,11 +1,11 @@
 import asyncio
 import httpx
 
-from mcpbot.shared.config import PORT
+from mcpbot.shared.config import COMPANY, PORT
 
 
 OPTION = 1
-EMAIL = "georgios.gkenios@devoteam.com"
+EMAIL = f"georgios.gkenios@{COMPANY}.com"
 
 match OPTION:
     case 1:
@@ -20,7 +20,7 @@ match OPTION:
         raise SystemExit("Invalid option. Please choose 1, 2, or 3.")
 
 
-async def main():
+async def main() -> None:
     token = httpx.post(
         url=f"http://localhost:{PORT}/token",
         data={"username": EMAIL, "password": "gg"},

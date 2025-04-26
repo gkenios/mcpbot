@@ -1,7 +1,9 @@
+from typing import AsyncGenerator
+
 from fastapi.responses import StreamingResponse
 from fastapi.routing import APIRouter
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
-from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain_mcp_adapters.client import MultiServerMCPClient  # type: ignore[import-untyped]
 from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel
 
@@ -12,7 +14,7 @@ from mcpbot.shared.init import config
 
 
 MESSAGE_LIMIT = 6
-MESSAGE_MAP: dict[str, BaseMessage] = {
+MESSAGE_MAP: dict[str, type[BaseMessage]] = {
     "human": HumanMessage,
     "ai": AIMessage,
 }
@@ -30,7 +32,7 @@ async def messages_create(
     user: UserAuth,
     conversation_id: str,
     body: MessagesBody,
-) -> str:
+) -> StreamingResponse:
     """Creates a new message in the conversation. The answer is streamed."""
     db_messages = config.databases.chat["messages"]
     history = [
@@ -46,7 +48,7 @@ async def messages_create(
 
 async def chat_streamer(
     messages: list[BaseMessage], conversation_id: str, user_id: str
-):
+) -> AsyncGenerator[str, None]:
     llm = config.models.llm
     full_response = ""
     async with MultiServerMCPClient(
@@ -69,10 +71,12 @@ async def chat_streamer(
         stream = agent.astream({"messages": messages}, stream_mode="messages")
         async for chunk, _ in stream:
             if isinstance(chunk, AIMessage):
-                full_response += chunk.content
-                yield chunk.content
+                chunck_content: str = chunk.content  # type: ignore
+                full_response += chunck_content
+                yield chunck_content
 
     # Create the message in the database
+    message: str = messages[-1].content  # type: ignore
     db_messages = config.databases.chat["messages"]
     db_conv = config.databases.chat["conversations"]
 
@@ -84,7 +88,7 @@ async def chat_streamer(
         conversation_id=conversation_id,
         user_id=user_id,
         role="human",
-        text=messages[-1].content,
+        text=message,
     )
     db_messages.create_message(
         conversation_id=conversation_id,

@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 
 from .create import messages_create, MessagesBody
 from .delete import messages_delete
@@ -14,7 +15,7 @@ async def messages_patch(
     conversation_id: str,
     message_id: str,
     body: MessagesBody,
-) -> str:
+) -> StreamingResponse:
     """Updates a message in the conversation. First, it deletes the message
     and all messages after it in the conversation. Then, it creates a new
     message with the new content.
