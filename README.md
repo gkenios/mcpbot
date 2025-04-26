@@ -8,6 +8,7 @@
 An implementation of an MCP client and server, using FastAPI.
 
 ## To Do
+- [ ] Add metadata to the streaming answer.
 - [ ] Develop a client-side GUI for the MCP client with ReactJS.
 
 ## Internal Use
