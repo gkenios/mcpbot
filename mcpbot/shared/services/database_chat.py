@@ -145,21 +145,35 @@ class JsonChatDB(ChatDB):
         return self._create_conversation(conversation)
 
     def delete_conversation(self, conversation_id: str, user_id: str) -> None:
-        file_path = Path(self.path) / user_id / conversation_id
+        file_path = Path(self.path) / user_id / f"{conversation_id}.json"
         if file_path.exists():
             file_path.unlink()
 
     def delete_message(self, message_id: str, conversation_id: str) -> None:
-        file_path = Path(self.path) / conversation_id / message_id
+        file_path = Path(self.path) / conversation_id / f"{message_id}.json"
         if file_path.exists():
             file_path.unlink()
 
-    def get_conversation(self, conversation_id: str, user_id: str) -> Conversation:
-        conversation = read_file(f"{self.path}/{user_id}/{conversation_id}")
+    def get_conversation(
+        self,
+        conversation_id: str,
+        user_id: str
+    ) -> Conversation | None:
+        try:
+            conversation = read_file(
+                f"{self.path}/{user_id}/{conversation_id}.json"
+            )
+        except FileNotFoundError:
+            return None
         return Conversation(**conversation)
 
-    def get_message(self, message_id: str, conversation_id: str) -> str:
-        message_id = read_file(f"{self.path}/{conversation_id}/{message_id}")
+    def get_message(self, message_id: str, conversation_id: str) -> str | None:
+        try:
+            message_id = read_file(
+                f"{self.path}/{conversation_id}/{message_id}.json"
+            )
+        except FileNotFoundError:
+            return None
         return message_id["id"]
 
     def list_conversations(self, user_id) -> list[str]:
@@ -200,11 +214,13 @@ class AzureCosmosChatDB(ChatDB):
         api_key: str,
     ):
         from azure.cosmos import CosmosClient
+        from azure.cosmos.exceptions import CosmosResourceNotFoundError
         self.client = (
             CosmosClient(endpoint, api_key)
             .get_database_client(database)
             .get_container_client(collection)
         )
+        self.read_item_error = CosmosResourceNotFoundError
 
     def _create_conversation(self, conversation: Conversation) -> None:
         self.client.create_item(conversation.model_dump())
@@ -221,12 +237,22 @@ class AzureCosmosChatDB(ChatDB):
     def delete_message(self, message_id: str, conversation_id: str) -> None:
         self.client.delete_item(message_id, conversation_id)
 
-    def get_conversation(self, conversation_id: str, user_id: str) -> Conversation:
-        conversation = self.client.read_item(conversation_id, user_id)
+    def get_conversation(
+        self,
+        conversation_id: str,
+        user_id: str
+    ) -> Conversation | None:
+        try:
+            conversation = self.client.read_item(conversation_id, user_id)
+        except self.read_item_error:
+            return None
         return Conversation(**conversation)
 
-    def get_message(self, message_id: str, conversation_id: str) -> str:
-        message = self.client.read_item(message_id, conversation_id)
+    def get_message(self, message_id: str, conversation_id: str) -> str | None:
+        try:
+            message = self.client.read_item(message_id, conversation_id)
+        except self.read_item_error:
+            return None
         return message["id"]
 
     def list_conversations(self, user_id) -> list[str]:
