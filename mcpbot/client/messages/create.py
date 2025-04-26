@@ -1,9 +1,8 @@
 from fastapi.responses import StreamingResponse
 from fastapi.routing import APIRouter
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, BaseMessage
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
-
 
 from mcpbot.server.prompts import client_prompt
 from mcpbot.shared.auth import UserAuth
@@ -20,14 +19,20 @@ async def messages_create(
     conversation_id: str,
     user: UserAuth,
 ) -> str:
+    db_messages = config.databases.chat["messages"]
+    history = [
+        BaseMessage(content=entry["text"], type=entry["role"])
+        for entry in db_messages.list_messages(conversation_id)
+    ] + [BaseMessage(content=message, type="human")]
     return StreamingResponse(
-        chat_streamer(message, user.user_id),
+        chat_streamer(history, conversation_id, user.user_id),
         media_type="text/event-stream",
     )
 
 
-async def chat_streamer(message, user_id):
+async def chat_streamer(message, conversation_id, user_id):
     llm = config.models.llm
+    full_response = ""
     async with MultiServerMCPClient(
         {
             "mcpbot": {
@@ -48,21 +53,21 @@ async def chat_streamer(message, user_id):
         stream = agent.astream({"messages": message}, stream_mode="messages")
         async for chunk, _ in stream:
             if isinstance(chunk, AIMessage):
+                full_response += chunk.content
                 yield chunk.content
 
 
-    #db = db_chat["messages"]
-    # # Create the message in the database
-    # human_message = db.create_message(
-    #     conversation_id=conversation_id,
-    #     user_id=user.user_id,
-    #     role="human",
-    #     text=message,
-    # )
-    # ai_message = db.create_message(
-    #     conversation_id=conversation_id,
-    #     user_id=user.user_id,
-    #     role="ai",
-    #     text=response,
-    # )
-    # return response
+    # Create the message in the database
+    db = config.databases.chat["messages"]
+    db.create_message(
+        conversation_id=conversation_id,
+        user_id=user_id,
+        role="human",
+        text=message,
+    )
+    db.create_message(
+        conversation_id=conversation_id,
+        user_id=user_id,
+        role="ai",
+        text=full_response,
+    )

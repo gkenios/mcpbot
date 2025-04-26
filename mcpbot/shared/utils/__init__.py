@@ -1,5 +1,4 @@
-from .base_models import ArbitaryTypesModel
-from .metaclasses import Singleton
+from .metaclasses import ArbitaryTypesModel, Singleton
 from .read_files import read_file, write_file
 
 

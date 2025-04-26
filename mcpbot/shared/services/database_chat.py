@@ -176,12 +176,12 @@ class JsonChatDB(ChatDB):
             return None
         return message_id["id"]
 
-    def list_conversations(self, user_id) -> list[str]:
+    def list_conversations(self, user_id) -> list[Conversation]:
         conversations = Path(self.path) / user_id
         if not conversations.exists():
             return []
         return [
-            conversation.name
+            read_file(conversation)
             for conversation in sorted(
                 conversations.iterdir(),
                 key=lambda x: x.stat().st_mtime,
@@ -190,16 +190,16 @@ class JsonChatDB(ChatDB):
             if conversation.is_file()
         ]
 
-    def list_messages(self, conversation_id: str) -> list[str]:
+    def list_messages(self, conversation_id: str) -> list[Message]:
         messages = Path(self.path) / conversation_id
         if not messages.exists():
             return []
         return [
-            message.name
+            read_file(message)
             for message in sorted(
                 messages.iterdir(),
                 key=lambda x: x.stat().st_mtime,
-                reverse=True,
+                reverse=False,
             )
             if message.is_file()
         ]
@@ -255,21 +255,21 @@ class AzureCosmosChatDB(ChatDB):
             return None
         return message["id"]
 
-    def list_conversations(self, user_id) -> list[str]:
+    def list_conversations(self, user_id) -> list[Conversation]:
         conversations = self.client.query_items(
-            f"SELECT c.id "
+            f"SELECT * "
             f"FROM c WHERE c.user_id = '{user_id}' "
             f"ORDER BY c.last_updated_at DESC",
         )
-        return [conversation["id"] for conversation in conversations]
+        return list(conversations)#[conversation for conversation in conversations]
 
-    def list_messages(self, conversation_id: str) -> list[str]:
+    def list_messages(self, conversation_id: str) -> list[Message]:
         messages = self.client.query_items(
-            f"SELECT c.id "
+            f"SELECT * "
             f"FROM c WHERE c.conversation_id = '{conversation_id}' "
-            f"ORDER BY c.created_at DESC",
+            f"ORDER BY c.created_at ASC",
         )
-        return [message["id"] for message in messages]
+        return list(messages)#[message for message in messages]
 
 
 class GCPNoSQLDB(ChatDB):

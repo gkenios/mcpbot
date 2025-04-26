@@ -42,7 +42,12 @@ class JsonFile(File):
             json.dump(content, f, ensure_ascii=False, indent=4)
 
 
-def read_file(file_path: str, context: dict[str, Any] | None = None) -> Any:
+def read_file(
+    file_path: str | Path,
+    context: dict[str, Any] | None = None,
+) -> Any:
+    if isinstance(file_path, Path):
+        file_path = str(file_path)
     if file_path.endswith(".yaml") or file_path.endswith(".yml"):
         obj = YamlFile
     elif file_path.endswith(".json"):
