@@ -31,7 +31,7 @@ class ChatDB(ABC):
         self,
         user_id: str,
         conversation_id: str | None = None
-    ) -> None:
+    ) -> Conversation:
         if not conversation_id:
             conversation_id = uuid4().hex
         timestamp = datetime.now(UTC).isoformat()
@@ -50,7 +50,7 @@ class ChatDB(ABC):
         user_id: str,
         role: str,
         text: str
-    ) -> None:
+    ) -> Message:
         message_id = uuid4().hex
         timestamp = datetime.now(UTC).isoformat()
         message = Message(
@@ -104,19 +104,27 @@ class ChatDB(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def list_conversations(self, user_id: str) -> list[str]:
+    def list_conversations(self, user_id: str) -> list[Conversation]:
         raise NotImplementedError
 
     @abstractmethod
-    def list_messages(self, conversation_id: str) -> list[str]:
+    def list_messages(self, conversation_id: str) -> list[Message]:
         raise NotImplementedError
 
     @abstractmethod
-    def get_conversation(self, conversation_id: str, user_id: str) -> Conversation:
+    def get_conversation(
+        self,
+        conversation_id: str,
+        user_id: str
+    ) -> Conversation | None:
         raise NotImplementedError
 
     @abstractmethod
-    def get_message(self, message_id: str, conversation_id: str) -> str:
+    def get_message(
+        self,
+        message_id: str,
+        conversation_id: str
+    ) -> Message | None:
         raise NotImplementedError
 
 
@@ -167,21 +175,25 @@ class JsonChatDB(ChatDB):
             return None
         return Conversation(**conversation)
 
-    def get_message(self, message_id: str, conversation_id: str) -> str | None:
+    def get_message(
+        self,
+        message_id: str,
+        conversation_id: str
+    ) -> Message | None:
         try:
-            message_id = read_file(
+            message = read_file(
                 f"{self.path}/{conversation_id}/{message_id}.json"
             )
         except FileNotFoundError:
             return None
-        return message_id["id"]
+        return Message(**message)
 
     def list_conversations(self, user_id) -> list[Conversation]:
         conversations = Path(self.path) / user_id
         if not conversations.exists():
             return []
         return [
-            read_file(conversation)
+            Conversation(**read_file(conversation))
             for conversation in sorted(
                 conversations.iterdir(),
                 key=lambda x: x.stat().st_mtime,
@@ -195,7 +207,7 @@ class JsonChatDB(ChatDB):
         if not messages.exists():
             return []
         return [
-            read_file(message)
+            Message(read_file(message))
             for message in sorted(
                 messages.iterdir(),
                 key=lambda x: x.stat().st_mtime,
@@ -248,12 +260,16 @@ class AzureCosmosChatDB(ChatDB):
             return None
         return Conversation(**conversation)
 
-    def get_message(self, message_id: str, conversation_id: str) -> str | None:
+    def get_message(
+        self,
+        message_id: str,
+        conversation_id: str
+    ) -> Message | None:
         try:
             message = self.client.read_item(message_id, conversation_id)
         except self.read_item_error:
             return None
-        return message["id"]
+        return Message(**message)
 
     def list_conversations(self, user_id) -> list[Conversation]:
         conversations = self.client.query_items(
@@ -261,7 +277,7 @@ class AzureCosmosChatDB(ChatDB):
             f"FROM c WHERE c.user_id = '{user_id}' "
             f"ORDER BY c.last_updated_at DESC",
         )
-        return list(conversations)#[conversation for conversation in conversations]
+        return [Conversation(**conversation) for conversation in conversations]
 
     def list_messages(self, conversation_id: str) -> list[Message]:
         messages = self.client.query_items(
@@ -269,7 +285,7 @@ class AzureCosmosChatDB(ChatDB):
             f"FROM c WHERE c.conversation_id = '{conversation_id}' "
             f"ORDER BY c.created_at ASC",
         )
-        return list(messages)#[message for message in messages]
+        return [Message(**message) for message in messages]
 
 
 class GCPNoSQLDB(ChatDB):

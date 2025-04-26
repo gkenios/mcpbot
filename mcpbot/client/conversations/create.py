@@ -26,7 +26,6 @@ async def conversations_create(
         conversation_id = user.user_id
     
     db = config.databases.chat["conversations"]
-    existing_conversation = db.get_conversation(conversation_id, user.user_id)
-    if existing_conversation:
-        return db.get_conversation(conversation_id, user.user_id)
+    if existing_conv := db.get_conversation(conversation_id, user.user_id):
+        return existing_conv
     return db.create_conversation(user.user_id, conversation_id=conversation_id)
