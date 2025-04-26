@@ -22,7 +22,7 @@ async def inject_meta_context(
     context: dict[str, str] | BaseModel,
 ) -> Request:
     """Injects meta context to the request.
-    
+
     Args:
         request: The request object.
         context: The context to add to the params['_meta'] of the request.

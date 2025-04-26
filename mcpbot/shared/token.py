@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.post("/token")
 async def token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
     is_correct_username = form_data.username.endswith("@devoteam.com")
     is_correct_password = form_data.password == "gg"
@@ -19,8 +19,7 @@ async def token(
 
     if not authenticated:
         raise HTTPException(
-            status_code=400,
-            detail="Incorrect username or password"
+            status_code=400, detail="Incorrect username or password"
         )
 
     access_token = create_access_token(

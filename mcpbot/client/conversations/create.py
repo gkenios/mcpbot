@@ -11,7 +11,7 @@ router_v1 = APIRouter(prefix="/v1")
 @router_v1.post("/conversations")
 async def conversations_create(user: UserAuth) -> Conversation:
     """Creates a new conversation.
-    
+
     It returns:
     - id: The ID of the conversation.
     - user_id: The ID of the user who created the conversation.
@@ -20,7 +20,7 @@ async def conversations_create(user: UserAuth) -> Conversation:
     """
     # In this implementation, we want 1 conversation per user.
     conversation_id = user.user_id.split("@")[0]
-    
+
     db = config.databases.chat["conversations"]
     if existing_conv := db.get_conversation(conversation_id, user.user_id):
         return existing_conv

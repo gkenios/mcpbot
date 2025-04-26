@@ -56,7 +56,14 @@ def book_desk(
 
     excluded_seats = []
     for i in range(people):
-        seat_id = get_seat_id(token, building_id, floor_id, date, desk_name, excluded_seats=excluded_seats)
+        seat_id = get_seat_id(
+            token,
+            building_id,
+            floor_id,
+            date,
+            desk_name,
+            excluded_seats=excluded_seats,
+        )
         if not seat_id:
             return f"While booking, someone else booked a desk and there are not enough desks. I booked {i} desks."
         create_desk_reservation(token, company_id, user_id, seat_id, date)

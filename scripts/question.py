@@ -11,7 +11,9 @@ match OPTION:
     case 1:
         QUESTION = "What are the holidays for this year?"
     case 2:
-        QUESTION = "Can you book a desk for me for next Sunday? I need a dual screen."
+        QUESTION = (
+            "Can you book a desk for me for next Sunday? I need a dual screen."
+        )
     case 3:
         QUESTION = "Can you unbook my desk for next Sunday?"
     case _:

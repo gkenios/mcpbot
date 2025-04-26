@@ -16,6 +16,7 @@ class File(ABC):
     def write_file(cls, path: str, content: Any) -> None:
         raise NotImplementedError
 
+
 class YamlFile(File):
     @classmethod
     def read_file(cls, path: str) -> Any:

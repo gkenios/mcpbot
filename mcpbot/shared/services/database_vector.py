@@ -37,6 +37,7 @@ class ChromaVectorDB(VectorDB):
         **kwargs,
     ) -> None:
         from langchain_chroma import Chroma
+
         self.vector_store = Chroma(
             embedding_function=embeddings,
             persist_directory=endpoint,
@@ -92,6 +93,7 @@ class AzureCosmosVectorDB(VectorDB):
         api_key: str,
     ) -> None:
         from azure.cosmos import CosmosClient
+
         self.vector_store = (
             CosmosClient(endpoint, api_key)
             .get_database_client(database)

@@ -5,7 +5,7 @@ from mcp.server.sse import SseServerTransport
 from mcpbot.client.conversations import (
     conversations_create,
     conversations_delete,
-    conversations_list, 
+    conversations_list,
 )
 from mcpbot.client.messages import (
     messages_create,
@@ -40,8 +40,8 @@ app.include_router(messages_list.router_v1, tags=["Messages"])
 app.include_router(messages_patch.router_v1, tags=["Messages"])
 
 # MCP Server
-sse=SseServerTransport(MCP_MESSAGES_ENDPOINT)
-mcp=FastMCP(name=TITLE)
+sse = SseServerTransport(MCP_MESSAGES_ENDPOINT)
+mcp = FastMCP(name=TITLE)
 add_prompts_from_module(mcp, prompts)
 add_tools_from_module(mcp, tools)
 

@@ -58,7 +58,8 @@ class ConfigSingleton(metaclass=Singleton):
         db = self.config.databases
         if db.vector:
             kwargs = {
-                key: value for key, value in db.vector.__dict__.items()
+                key: value
+                for key, value in db.vector.__dict__.items()
                 if key != "host"
             }
             vector_db = VectorDBFactory[db.vector.host].value(
@@ -71,7 +72,8 @@ class ConfigSingleton(metaclass=Singleton):
         if db.chat:
             if isinstance(db.chat.collection, str):
                 kwargs = {
-                    key: value for key, value in db.chat.__dict__.items()
+                    key: value
+                    for key, value in db.chat.__dict__.items()
                     if key != "host"
                 }
                 chat_db = ChatDBFactory[db.chat.host].value(**kwargs)
@@ -79,7 +81,8 @@ class ConfigSingleton(metaclass=Singleton):
                 collections = dict()
                 for collect_key, collect_value in db.chat.collection.items():
                     kwargs = {
-                        key: value for key, value in db.chat.__dict__.items()
+                        key: value
+                        for key, value in db.chat.__dict__.items()
                         if key != "host"
                     }
                     kwargs["collection"] = collect_value
@@ -103,7 +106,8 @@ class ConfigSingleton(metaclass=Singleton):
 
                 # Get the secrets
                 retrieved_secrets = (
-                    SecretFactory[host.name].value()
+                    SecretFactory[host.name]
+                    .value()
                     .get(secrets_mapping.values(), vault.name)
                 )
                 secrets.update(

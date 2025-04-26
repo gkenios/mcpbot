@@ -17,6 +17,7 @@ MESSAGE_MAP: dict[str, BaseMessage] = {
     "ai": AIMessage,
 }
 
+
 class MessagesBody(BaseModel):
     message: str
 
@@ -44,9 +45,7 @@ async def messages_create(
 
 
 async def chat_streamer(
-    messages: list[BaseMessage],
-    conversation_id: str,
-    user_id: str
+    messages: list[BaseMessage], conversation_id: str, user_id: str
 ):
     llm = config.models.llm
     full_response = ""

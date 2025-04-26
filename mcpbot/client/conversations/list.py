@@ -10,8 +10,7 @@ router_v1 = APIRouter(prefix="/v1")
 
 @router_v1.get("/conversations")
 async def conversations_list(
-    user: UserAuth,
-    order_by: OrderBy = "DESC"
+    user: UserAuth, order_by: OrderBy = "DESC"
 ) -> list[Conversation]:
     """Lists all conversations for the authenticated user."""
     db = config.databases.chat["conversations"]

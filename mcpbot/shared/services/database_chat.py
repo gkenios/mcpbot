@@ -31,9 +31,7 @@ class Message(BaseModel):
 
 class ChatDB(ABC):
     def create_conversation(
-        self,
-        user_id: str,
-        conversation_id: str | None = None
+        self, user_id: str, conversation_id: str | None = None
     ) -> Conversation:
         if not conversation_id:
             conversation_id = uuid4().hex
@@ -48,11 +46,7 @@ class ChatDB(ABC):
         return conversation
 
     def create_message(
-        self,
-        conversation_id: str,
-        user_id: str,
-        role: str,
-        text: str
+        self, conversation_id: str, user_id: str, role: str, text: str
     ) -> Message:
         message_id = uuid4().hex
         timestamp = datetime.now(UTC).isoformat()
@@ -108,33 +102,25 @@ class ChatDB(ABC):
 
     @abstractmethod
     def list_conversations(
-        self,
-        user_id: str,
-        order_by: OrderBy = "DESC"
+        self, user_id: str, order_by: OrderBy = "DESC"
     ) -> list[Conversation]:
         raise NotImplementedError
 
     @abstractmethod
     def list_messages(
-        self,
-        conversation_id: str,
-        order_by: OrderBy = "ASC"
+        self, conversation_id: str, order_by: OrderBy = "ASC"
     ) -> list[Message]:
         raise NotImplementedError
 
     @abstractmethod
     def get_conversation(
-        self,
-        conversation_id: str,
-        user_id: str
+        self, conversation_id: str, user_id: str
     ) -> Conversation | None:
         raise NotImplementedError
 
     @abstractmethod
     def get_message(
-        self,
-        message_id: str,
-        conversation_id: str
+        self, message_id: str, conversation_id: str
     ) -> Message | None:
         raise NotImplementedError
 
@@ -174,9 +160,7 @@ class JsonChatDB(ChatDB):
             file_path.unlink()
 
     def get_conversation(
-        self,
-        conversation_id: str,
-        user_id: str
+        self, conversation_id: str, user_id: str
     ) -> Conversation | None:
         try:
             conversation = read_file(
@@ -187,9 +171,7 @@ class JsonChatDB(ChatDB):
         return Conversation(**conversation)
 
     def get_message(
-        self,
-        message_id: str,
-        conversation_id: str
+        self, message_id: str, conversation_id: str
     ) -> Message | None:
         try:
             message = read_file(
@@ -248,6 +230,7 @@ class AzureCosmosChatDB(ChatDB):
     ):
         from azure.cosmos import CosmosClient
         from azure.cosmos.exceptions import CosmosResourceNotFoundError
+
         self.client = (
             CosmosClient(endpoint, api_key)
             .get_database_client(database)
@@ -271,9 +254,7 @@ class AzureCosmosChatDB(ChatDB):
         self.client.delete_item(message_id, conversation_id)
 
     def get_conversation(
-        self,
-        conversation_id: str,
-        user_id: str
+        self, conversation_id: str, user_id: str
     ) -> Conversation | None:
         try:
             conversation = self.client.read_item(conversation_id, user_id)
@@ -282,9 +263,7 @@ class AzureCosmosChatDB(ChatDB):
         return Conversation(**conversation)
 
     def get_message(
-        self,
-        message_id: str,
-        conversation_id: str
+        self, message_id: str, conversation_id: str
     ) -> Message | None:
         try:
             message = self.client.read_item(message_id, conversation_id)
