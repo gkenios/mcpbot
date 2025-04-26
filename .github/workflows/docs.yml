@@ -1,0 +1,34 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs.yml'
+
+env:
+  PYTHON_VERSION: "3.12"
+  REQUIREMENTS_GROUP: docs
+
+permissions:
+  contents: write
+
+jobs:
+  build_mkdocs:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+          fetch-depth: 0
+
+    - name: Python Setup
+      uses: ./.github/actions/python-setup
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        requirements-group: ${{ env.REQUIREMENTS_GROUP }}
+
+    - run: mkdocs gh-deploy --force

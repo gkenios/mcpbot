@@ -1,0 +1,48 @@
+databases:
+  chat:
+    host: azure  # Host names in [local, azure]
+    endpoint: https://dvtm-gkenios-uva-dev-nosql.documents.azure.com:443/
+    database: devoteam-nl-chat
+    collection:
+      conversations: conversations
+      messages: messages
+    api_key: "{{ db_chat_key }}"
+  vector:
+    host: azure
+    endpoint: https://dvtm-gkenios-uva-dev-nosql.documents.azure.com:443/
+    database: devoteam-nl-mcp
+    collection: faq
+    api_key: "{{ db_vector_key }}"
+
+models:
+  llm:
+    api_key: "{{ llm_key }}"  # "{{ <secret> }}" references a secret by name
+    api_url: https://openai-devoteam.openai.azure.com/
+    api_version: "2024-10-21"  # Optional parameter
+    model: gpt-4o-mini
+  embeddings:
+    api_key: "{{ embeddings_key }}"
+    api_url: https://openai-devoteam.openai.azure.com/
+    api_version: "2024-10-21" # https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation#latest-ga-api-release
+    model: text-embedding-ada-002
+
+secrets:
+  hosts:  # Host names in [local, azure]
+  - name: azure
+    vaults:
+    - name: dvtm-gkenios-uva-dev-kv
+      secrets:
+      - name: db_vector_key  # Secret name in the application
+        value: VECTORDB      # Secret name in the vault
+      - name: db_chat_key
+        value: VECTORDB
+      - name: embeddings_key
+        value: EMBEDDINGS
+      - name: joan_client_id
+        value: JOANID
+      - name: joan_client_secret
+        value: JOANSECRET
+      - name: joan_company_id
+        value: JOANCOMPANYID
+      - name: llm_key
+        value: LLM

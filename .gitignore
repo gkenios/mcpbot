@@ -1,0 +1,47 @@
+# Environments
+.env
+.venv
+
+# VS Code
+__pycache__/
+
+# Project IDX
+.idx/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Ruff
+.ruff_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# mkdocs documentation
+/site
+
+# Vector Databases
+.chromadb/
+chroma.log
+
+# Chat Database
+.chatdb/
+
+# Testing
+z.py
+faq.yml
+faq.json

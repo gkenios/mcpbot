@@ -1,0 +1,41 @@
+databases:
+  chat:
+    host: local  # Host names in [local, azure]
+    endpoint: ./.chatdb
+    collection:
+      conversations: conversations
+      messages: messages
+  vector:
+    host: local
+    endpoint: ./.chromadb
+    collection: faq
+
+models:
+  llm:
+    api_key: "{{ llm_key }}"  # "{{ <secret> }}" references a secret by name
+    api_url: https://openai-devoteam.openai.azure.com/
+    api_version: "2024-10-21"  # Optional parameter
+    model: gpt-4o-mini
+  embeddings:
+    api_key: "{{ embeddings_key }}"
+    api_url: https://openai-devoteam.openai.azure.com/
+    api_version: "2024-10-21" # https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation#latest-ga-api-release
+    model: text-embedding-ada-002
+
+secrets:
+  hosts:  # Host names in [local, azure]
+  - name: local
+    vaults:
+    - name: null
+      secrets:
+      - name: embeddings_key  # Secret name in the application
+        value: EMBEDDINGS     # Secret name in the vault
+      - name: joan_client_id
+        value: JOANID
+      - name: joan_client_secret
+        value: JOANSECRET
+      - name: joan_company_id
+        value: JOANCOMPANYID
+      - name: llm_key
+        value: LLM
+  

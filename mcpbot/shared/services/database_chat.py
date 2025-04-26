@@ -1,0 +1,251 @@
+from abc import ABC, abstractmethod
+from datetime import UTC, datetime
+from enum import Enum
+from pathlib import Path
+from typing import Literal
+from uuid import uuid4
+
+from pydantic import BaseModel
+
+from mcpbot.shared.utils import read_file, write_file
+
+
+class Conversation(BaseModel):
+    id: str
+    user_id: str
+    created_at: str
+    last_updated_at: str
+
+
+class Message(BaseModel):
+    id: str
+    conversation_id: str
+    user_id: str
+    role: Literal["human", "ai"]
+    text: str
+    created_at: str
+
+
+class ChatDB(ABC):
+    def create_conversation(self, user_id: str) -> None:
+        conversation_id = uuid4().hex
+        timestamp = datetime.now(UTC).isoformat()
+        conversation = Conversation(
+            id=conversation_id,
+            user_id=user_id,
+            created_at=timestamp,
+            last_updated_at=timestamp,
+        )
+        self._create_conversation(conversation)
+        return conversation
+
+    def create_message(
+        self,
+        conversation_id: str,
+        user_id: str,
+        role: str,
+        text: str
+    ) -> None:
+        message_id = uuid4().hex
+        timestamp = datetime.now(UTC).isoformat()
+        message = Message(
+            id=message_id,
+            conversation_id=conversation_id,
+            user_id=user_id,
+            role=role,
+            text=text,
+            created_at=timestamp,
+        )
+        self._create_message(message)
+        return message
+
+    def delete_over_n_messages(
+        self,
+        conversation_id: str,
+        n_messages: int,
+    ) -> None:
+        message_ids = self.list_messages(conversation_id)
+        if len(message_ids) > n_messages:
+            for message_id in message_ids[n_messages:]:
+                self.delete_message(message_id, conversation_id)
+
+    def update_conversation_timestamp(
+        self,
+        conversation_id: str,
+        user_id: str,
+    ) -> None:
+        conversation = self.get_conversation(conversation_id, user_id)
+        conversation.last_updated_at = datetime.now(UTC).isoformat()
+        self._update_conversation(conversation)
+
+    @abstractmethod
+    def _create_conversation(self, conversation: Conversation) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _create_message(self, message: Message) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _update_conversation(self, conversation: Conversation) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete_conversation(self, conversation_id: str, user_id: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete_message(self, message_id: str, conversation_id: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def list_conversations(self, user_id: str) -> list[str]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def list_messages(self, conversation_id: str) -> list[str]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_conversation(self, conversation_id: str, user_id: str) -> Conversation:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_message(self, message_id: str, conversation_id: str) -> str:
+        raise NotImplementedError
+
+
+class JsonChatDB(ChatDB):
+    def __init__(
+        self,
+        endpoint: str,
+        collection: str,
+        **kwargs,
+    ):
+        self.path = f"{endpoint}/{collection}"
+
+    def _create_conversation(self, conversation: Conversation) -> None:
+        write_file(
+            f"{self.path}/{conversation.user_id}/{conversation.id}.json",
+            conversation.model_dump(),
+        )
+
+    def _create_message(self, message: Message) -> None:
+        write_file(
+            f"{self.path}/{message.conversation_id}/{message.id}.json",
+            message.model_dump(),
+        )
+
+    def _update_conversation(self, conversation: Conversation) -> None:
+        return self._create_conversation(conversation)
+
+    def delete_conversation(self, conversation_id: str, user_id: str) -> None:
+        file_path = Path(self.path) / user_id / conversation_id
+        if file_path.exists():
+            file_path.unlink()
+
+    def delete_message(self, message_id: str, conversation_id: str) -> None:
+        file_path = Path(self.path) / conversation_id / message_id
+        if file_path.exists():
+            file_path.unlink()
+
+    def get_conversation(self, conversation_id: str, user_id: str) -> Conversation:
+        conversation = read_file(f"{self.path}/{user_id}/{conversation_id}")
+        return Conversation(**conversation)
+
+    def get_message(self, message_id: str, conversation_id: str) -> str:
+        message_id = read_file(f"{self.path}/{conversation_id}/{message_id}")
+        return message_id["id"]
+
+    def list_conversations(self, user_id) -> list[str]:
+        conversations = Path(self.path) / user_id
+        if not conversations.exists():
+            return []
+        return [
+            conversation.name
+            for conversation in sorted(
+                conversations.iterdir(),
+                key=lambda x: x.stat().st_mtime,
+                reverse=True,
+            )
+            if conversation.is_file()
+        ]
+
+    def list_messages(self, conversation_id: str) -> list[str]:
+        messages = Path(self.path) / conversation_id
+        if not messages.exists():
+            return []
+        return [
+            message.name
+            for message in sorted(
+                messages.iterdir(),
+                key=lambda x: x.stat().st_mtime,
+                reverse=True,
+            )
+            if message.is_file()
+        ]
+
+
+class AzureCosmosChatDB(ChatDB):
+    def __init__(
+        self,
+        database: str,
+        collection: str,
+        endpoint: str,
+        api_key: str,
+    ):
+        from azure.cosmos import CosmosClient
+        self.client = (
+            CosmosClient(endpoint, api_key)
+            .get_database_client(database)
+            .get_container_client(collection)
+        )
+
+    def _create_conversation(self, conversation: Conversation) -> None:
+        self.client.create_item(conversation.model_dump())
+
+    def _create_message(self, message: Message) -> None:
+        self.client.create_item(message.model_dump())
+
+    def _update_conversation(self, conversation: Conversation) -> None:
+        self.client.upsert_item(conversation.model_dump())
+
+    def delete_conversation(self, conversation_id: str, user_id: str) -> None:
+        self.client.delete_item(conversation_id, user_id)
+
+    def delete_message(self, message_id: str, conversation_id: str) -> None:
+        self.client.delete_item(message_id, conversation_id)
+
+    def get_conversation(self, conversation_id: str, user_id: str) -> Conversation:
+        conversation = self.client.read_item(conversation_id, user_id)
+        return Conversation(**conversation)
+
+    def get_message(self, message_id: str, conversation_id: str) -> str:
+        message = self.client.read_item(message_id, conversation_id)
+        return message["id"]
+
+    def list_conversations(self, user_id) -> list[str]:
+        conversations = self.client.query_items(
+            f"SELECT c.id "
+            f"FROM c WHERE c.user_id = '{user_id}' "
+            f"ORDER BY c.last_updated_at DESC",
+        )
+        return [conversation["id"] for conversation in conversations]
+
+    def list_messages(self, conversation_id: str) -> list[str]:
+        messages = self.client.query_items(
+            f"SELECT c.id "
+            f"FROM c WHERE c.conversation_id = '{conversation_id}' "
+            f"ORDER BY c.created_at DESC",
+        )
+        return [message["id"] for message in messages]
+
+
+class GCPNoSQLDB(ChatDB):
+    pass
+
+
+class ChatDBFactory(Enum):
+    local = JsonChatDB
+    azure = AzureCosmosChatDB
+    gcp = GCPNoSQLDB
