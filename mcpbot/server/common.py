@@ -13,7 +13,7 @@ def add_prompts_from_module(server: FastMCP, module: ModuleType) -> None:
                 server.add_prompt(Prompt.from_function(attribute))
 
 
-def add_tools_from_module(server: FastMCP, module: ModuleType):
+def add_tools_from_module(server: FastMCP, module: ModuleType) -> None:
     """Adds all tools from a module to the server."""
     for tool in dir(module):
         if not tool.startswith("__") or not tool.endswith("__"):

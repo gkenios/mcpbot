@@ -15,13 +15,13 @@ from mcpbot.shared.utils import ArbitaryTypesModel, Singleton, read_file
 
 
 class AppDatabases(ArbitaryTypesModel):
-    chat: ChatDB | dict[str, ChatDB] | None = None
-    vector: VectorDB | None = None
+    chat: ChatDB | dict[str, ChatDB]
+    vector: VectorDB
 
 
 class AppModels(ArbitaryTypesModel):
-    embeddings: Embeddings | None = None
-    llm: BaseChatModel | None = None
+    embeddings: Embeddings
+    llm: BaseChatModel
 
 
 class AppConfig(ArbitaryTypesModel):

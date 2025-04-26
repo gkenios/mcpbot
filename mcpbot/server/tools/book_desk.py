@@ -1,5 +1,7 @@
-import httpx
 import re
+from typing import Any
+
+import httpx
 from mcp.server.fastmcp import Context
 
 from mcpbot.server.context import get_meta_context_value
@@ -7,7 +9,7 @@ from mcpbot.shared.init import config
 
 
 def book_desk(
-    context: Context,
+    context: Context[Any, Any],
     date: str,
     people: int = 1,
     city: str = "Amsterdam",

@@ -3,9 +3,10 @@ from mcp.server.fastmcp import Context
 
 from mcpbot.server.context import get_meta_context_value
 from mcpbot.shared.init import config
+from typing import Any
 
 
-def unbook_desk(context: Context, date: str) -> str:
+def unbook_desk(context: Context[Any, Any], date: str) -> str:
     """Deletes a desk reservation (or multiple) for a user on a given date.
 
     Args:
