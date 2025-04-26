@@ -19,12 +19,11 @@ MESSAGE_MAP: dict[str, type[BaseMessage]] = {
     "ai": AIMessage,
 }
 
+router_v1 = APIRouter(prefix="/v1")
+
 
 class MessagesBody(BaseModel):
     message: str
-
-
-router_v1 = APIRouter(prefix="/v1")
 
 
 @router_v1.post("/conversations/{conversation_id}/messages")
