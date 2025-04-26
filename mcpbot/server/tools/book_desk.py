@@ -293,3 +293,4 @@ def get_desk_reservation(
     ).json()
     if response:
         return [desk["id"] for desk in response]
+    return None

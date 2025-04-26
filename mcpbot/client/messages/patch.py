@@ -14,7 +14,7 @@ async def messages_patch(
     conversation_id: str,
     message_id: str,
     body: MessagesBody,
-):
+) -> str:
     """Updates a message in the conversation. First, it deletes the message
     and all messages after it in the conversation. Then, it creates a new
     message with the new content.

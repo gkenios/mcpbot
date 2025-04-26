@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from mcp.server import FastMCP
 from mcp.server.sse import SseServerTransport
+from starlette.middleware.base import RequestResponseEndpoint
 
 from mcpbot.client.conversations import (
     conversations_create,
@@ -69,11 +70,24 @@ async def post_endpoint(request: Request) -> None:
     )
 
 
+UnauthorizedException = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Missing Authorization header",
+    headers={"WWW-Authenticate": "Bearer"},
+)
+
+
 # Middleware for Authentication
 @app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    is_local_call = request.client.host == "127.0.0.1"
+async def add_process_time_header(
+    request: Request,
+    call_next: RequestResponseEndpoint,
+) -> Response:
     is_mcp_call = request.url.path.lower().startswith("/mcp")
+    if not request.client:
+        is_local_call = False
+    else:
+        is_local_call = request.client.host == "127.0.0.1"
 
     # If it's client call, proceed with the request
     if not is_mcp_call:
@@ -81,17 +95,17 @@ async def add_process_time_header(request: Request, call_next):
     # If it's an MCP Server request but it is local, skip authentication
     elif is_mcp_call and is_local_call:
         email = request.headers.get("user_email")
+        if not email:
+            raise UnauthorizedException
     # If it's an external MCP Server request, authenticate the user
     else:
         token = request.headers.get("Authorization")
+        if not token:
+            raise UnauthorizedException
         try:
             token = token.split(" ", 1)[1]
         except Exception as error:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing Authorization header",
-                headers={"WWW-Authenticate": "Bearer"},
-            ) from error
+            raise UnauthorizedException from error
         user = await validate_user(token)
         email = user.user_id
 
