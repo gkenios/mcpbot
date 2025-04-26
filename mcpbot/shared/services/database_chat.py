@@ -192,16 +192,20 @@ class JsonChatDB(ChatDB):
         conversations = Path(self.path) / user_id
         if not conversations.exists():
             return []
-        conversations = [
+        for conversation in conversations.iterdir():
+            if not conversation.is_file():
+                continue
+
+        listed_conversations = [
             Conversation(**read_file(conversation))
             for conversation in conversations.iterdir()
             if conversation.is_file()
         ]
-        conversations.sort(
+        listed_conversations.sort(
             key=lambda x: x.created_at,
             reverse={"ASC": False, "DESC": True}[order_by],
         )
-        return conversations
+        return listed_conversations
 
     def list_messages(
         self,
@@ -211,16 +215,16 @@ class JsonChatDB(ChatDB):
         messages = Path(self.path) / conversation_id
         if not messages.exists():
             return []
-        messages = [
+        listed_messages = [
             Message(**read_file(message))
             for message in messages.iterdir()
             if message.is_file()
         ]
-        messages.sort(
+        listed_messages.sort(
             key=lambda x: x.created_at,
             reverse={"ASC": False, "DESC": True}[order_by],
         )
-        return messages
+        return listed_messages
 
 
 class AzureCosmosChatDB(ChatDB):

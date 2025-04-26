@@ -34,7 +34,7 @@ class ChromaVectorDB(VectorDB):
         embeddings: Embeddings,
         collection: str,
         endpoint: str,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         from langchain_chroma import Chroma
 
@@ -123,7 +123,7 @@ class AzureCosmosVectorDB(VectorDB):
         data = {
             "id": id,
             "text": text,
-            "embedding": self.embeddings.embed_documents(text),
+            "embedding": self.embeddings.embed_documents([text])[0],
             "metadata": metadata,
         }
         self.vector_store.upsert_item(data)
