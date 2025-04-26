@@ -9,6 +9,9 @@ from mcpbot.client.conversations import (
 )
 from mcpbot.client.messages import (
     messages_create,
+    messages_delete,
+    messages_list,
+    messages_patch,
 )
 from mcpbot.server import prompts, tools
 from mcpbot.server.common import add_prompts_from_module, add_tools_from_module
@@ -32,6 +35,9 @@ app.include_router(conversations_create.router_v1, tags=["Conversations"])
 app.include_router(conversations_delete.router_v1, tags=["Conversations"])
 app.include_router(conversations_list.router_v1, tags=["Conversations"])
 app.include_router(messages_create.router_v1, tags=["Messages"])
+app.include_router(messages_delete.router_v1, tags=["Messages"])
+app.include_router(messages_list.router_v1, tags=["Messages"])
+app.include_router(messages_patch.router_v1, tags=["Messages"])
 
 # MCP Server
 sse=SseServerTransport(MCP_MESSAGES_ENDPOINT)

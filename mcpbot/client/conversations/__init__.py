@@ -1,4 +1,4 @@
-from ..conversations import (
+from . import (
     create as conversations_create,
     delete as conversations_delete,
     list as conversations_list,

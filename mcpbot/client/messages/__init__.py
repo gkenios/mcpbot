@@ -1,8 +1,8 @@
-from ..messages import (
+from . import (
     create as messages_create,
     delete as messages_delete,
     list as messages_list,
-    update as messages_update,
+    patch as messages_patch,
 )
 
 
@@ -10,5 +10,5 @@ __all__ = [
     "messages_create",
     "messages_delete",
     "messages_list",
-    "messages_update",
+    "messages_patch",
 ]

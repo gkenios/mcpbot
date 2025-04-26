@@ -3,6 +3,7 @@ from fastapi.routing import APIRouter
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
+from pydantic import BaseModel
 
 from mcpbot.server.prompts import client_prompt
 from mcpbot.shared.auth import UserAuth
@@ -16,21 +17,25 @@ MESSAGE_MAP: dict[str, BaseMessage] = {
     "ai": AIMessage,
 }
 
+class MessagesBody(BaseModel):
+    message: str
+
+
 router_v1 = APIRouter(prefix="/v1")
 
 
-@router_v1.post("/{conversation_id}/messages")
+@router_v1.post("/conversations/{conversation_id}/messages")
 async def messages_create(
-    message: str,
-    conversation_id: str,
     user: UserAuth,
+    conversation_id: str,
+    body: MessagesBody,
 ) -> str:
     db_messages = config.databases.chat["messages"]
     history = [
         MESSAGE_MAP[entry.role](content=entry.text)
         for entry in db_messages.list_messages(conversation_id)
     ]
-    history.append(HumanMessage(content=message))
+    history.append(HumanMessage(content=body.message))
     return StreamingResponse(
         chat_streamer(history, conversation_id, user.user_id),
         media_type="text/event-stream",

@@ -10,6 +10,9 @@ from pydantic import BaseModel
 from mcpbot.shared.utils import read_file, write_file
 
 
+OrderBy = Literal["ASC", "DESC"]
+
+
 class Conversation(BaseModel):
     id: str
     user_id: str
@@ -104,11 +107,19 @@ class ChatDB(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def list_conversations(self, user_id: str) -> list[Conversation]:
+    def list_conversations(
+        self,
+        user_id: str,
+        order_by: OrderBy = "DESC"
+    ) -> list[Conversation]:
         raise NotImplementedError
 
     @abstractmethod
-    def list_messages(self, conversation_id: str) -> list[Message]:
+    def list_messages(
+        self,
+        conversation_id: str,
+        order_by: OrderBy = "ASC"
+    ) -> list[Message]:
         raise NotImplementedError
 
     @abstractmethod
@@ -188,33 +199,43 @@ class JsonChatDB(ChatDB):
             return None
         return Message(**message)
 
-    def list_conversations(self, user_id) -> list[Conversation]:
+    def list_conversations(
+        self,
+        user_id: str,
+        order_by: OrderBy = "DESC",
+    ) -> list[Conversation]:
         conversations = Path(self.path) / user_id
         if not conversations.exists():
             return []
-        return [
+        conversations = [
             Conversation(**read_file(conversation))
-            for conversation in sorted(
-                conversations.iterdir(),
-                key=lambda x: x.stat().st_mtime,
-                reverse=True,
-            )
+            for conversation in conversations.iterdir()
             if conversation.is_file()
         ]
+        conversations.sort(
+            key=lambda x: x.created_at,
+            reverse={"ASC": False, "DESC": True}[order_by],
+        )
+        return conversations
 
-    def list_messages(self, conversation_id: str) -> list[Message]:
+    def list_messages(
+        self,
+        conversation_id: str,
+        order_by: OrderBy = "ASC",
+    ) -> list[Message]:
         messages = Path(self.path) / conversation_id
         if not messages.exists():
             return []
-        return [
+        messages = [
             Message(**read_file(message))
-            for message in sorted(
-                messages.iterdir(),
-                key=lambda x: x.stat().st_mtime,
-                reverse=False,
-            )
+            for message in messages.iterdir()
             if message.is_file()
         ]
+        messages.sort(
+            key=lambda x: x.created_at,
+            reverse={"ASC": False, "DESC": True}[order_by],
+        )
+        return messages
 
 
 class AzureCosmosChatDB(ChatDB):
@@ -271,19 +292,27 @@ class AzureCosmosChatDB(ChatDB):
             return None
         return Message(**message)
 
-    def list_conversations(self, user_id) -> list[Conversation]:
+    def list_conversations(
+        self,
+        user_id: str,
+        order_by: OrderBy = "DESC",
+    ) -> list[Conversation]:
         conversations = self.client.query_items(
             f"SELECT * "
             f"FROM c WHERE c.user_id = '{user_id}' "
-            f"ORDER BY c.last_updated_at DESC",
+            f"ORDER BY c.last_updated_at {order_by}",
         )
         return [Conversation(**conversation) for conversation in conversations]
 
-    def list_messages(self, conversation_id: str) -> list[Message]:
+    def list_messages(
+        self,
+        conversation_id: str,
+        order_by: OrderBy = "ASC",
+    ) -> list[Message]:
         messages = self.client.query_items(
             f"SELECT * "
             f"FROM c WHERE c.conversation_id = '{conversation_id}' "
-            f"ORDER BY c.created_at ASC",
+            f"ORDER BY c.created_at {order_by}",
         )
         return [Message(**message) for message in messages]
 
