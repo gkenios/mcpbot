@@ -1,4 +1,4 @@
-from mcpbot.client.messages import (
+from ..messages import (
     create as messages_create,
     delete as messages_delete,
     list as messages_list,
