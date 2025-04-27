@@ -44,7 +44,7 @@ class SecretsVaultConfig(BaseModel):
 
 
 class SecretsHostConfig(BaseModel):
-    name: Literal["local", *_SUPPORTED_CLOUD_PROVIDERS]  # type: ignore
+    name: Literal["local", *_SUPPORTED_CLOUD_PROVIDERS]  # type: ignore[valid-type]
     vaults: list[SecretsVaultConfig]
 
 

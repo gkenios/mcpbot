@@ -9,7 +9,7 @@ class MetaContext(BaseModel):
     user_email: str
 
 
-def get_meta_context_value(context: Context, key: str) -> str | None:  # type: ignore
+def get_meta_context_value(context: Context, key: str) -> str | None:  # type: ignore[type-arg]
     return (
         getattr(context.request_context.meta, key, None)
         if context.request_context.meta is not None

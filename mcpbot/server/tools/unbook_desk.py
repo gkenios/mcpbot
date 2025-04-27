@@ -5,7 +5,7 @@ from mcpbot.server.context import get_meta_context_value
 from mcpbot.shared.init import config
 
 
-def unbook_desk(context: Context, date: str) -> str:  # type: ignore
+def unbook_desk(context: Context, date: str) -> str:  # type: ignore[type-arg]
     """Deletes a desk reservation (or multiple) for a user on a given date.
 
     Args:

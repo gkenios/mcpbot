@@ -9,7 +9,7 @@ from mcpbot.shared.init import config
 
 
 def book_desk(
-    context: Context,  # type: ignore
+    context: Context,  # type: ignore[type-arg]
     date: str,
     people: int = 1,
     city: str = "Amsterdam",
@@ -124,7 +124,7 @@ def get_locations(token: str, company_id: str) -> list[JoanLocation]:
     for building in response["locations"][:-1]:
         for floor in building["maps"]:
             try:
-                level = int(re.search(r"\d+", floor["name"]).group())  # type: ignore
+                level = int(re.search(r"\d+", floor["name"]).group())  # type: ignore[union-attr]
             except AttributeError:
                 level = 0
             building_data = JoanLocation(

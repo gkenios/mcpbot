@@ -70,12 +70,11 @@ async def chat_streamer(
         stream = agent.astream({"messages": messages}, stream_mode="messages")
         async for chunk, _ in stream:
             if isinstance(chunk, AIMessage):
-                chunck_content: str = chunk.content  # type: ignore
-                full_response += chunck_content
-                yield chunck_content
+                full_response += chunk.content  # type: ignore[operator]
+                yield chunk.content  # type: ignore[misc]
 
     # Create the message in the database
-    message: str = messages[-1].content  # type: ignore
+    message: str = messages[-1].content  # type: ignore[assignment]
     db_messages = config.databases.chat["messages"]
     db_conv = config.databases.chat["conversations"]
 
