@@ -5,7 +5,7 @@ COMPANY = "Devoteam"
 
 ENV = os.getenv("ENV", "dev")
 LOCAL = os.getenv("LOCAL", "true").lower() != "false"
-PORT = os.getenv("PORT", 8080)
+PORT = os.getenv("PORT", 8000)
 
 if LOCAL:
     from dotenv import load_dotenv
