@@ -4,6 +4,9 @@ from mcpbot.shared.utils import read_file
 
 WRITE = False
 
+if __name__ != "__main__":
+    raise Exception("This script is not meant to be imported")
+
 db_vector = config.databases.vector["faq"]
 if WRITE:
     for document in read_file("faq.yml"):
