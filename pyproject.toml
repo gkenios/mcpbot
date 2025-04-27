@@ -10,7 +10,6 @@ dependencies = [
     "azure-keyvault-secrets>=4.9.0",
     "fastapi>=0.115.12",
     "jinja2>=3.1.6",
-    "langchain-chroma>=0.2.3",
     "langchain-core>=0.3.56",
     "langchain-mcp-adapters>=0.0.9",
     "langchain-openai>=0.3.14",
@@ -20,6 +19,11 @@ dependencies = [
     "python-multipart>=0.0.20",
     "pytz>=2025.2",
     "types-pytz>=2025.2.0.20250326",
+]
+
+[project.optional-dependencies]
+local = [
+    "langchain-chroma>=0.2.3",
 ]
 
 [dependency-groups]
@@ -45,3 +49,6 @@ line-length = 80
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.uv]
+default-groups = []

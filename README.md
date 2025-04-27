@@ -1,4 +1,4 @@
-# MCPBOT
+# MCPBot
 ---
 
 **Documentation**: <a href="https://gkenios.github.io/mcpbot" target="_blank">https://gkenios.github.io/mcpbot</a>
