@@ -10,7 +10,6 @@ dependencies = [
     "azure-keyvault-secrets>=4.9.0",
     "fastapi>=0.115.12",
     "jinja2>=3.1.6",
-    "langchain-chroma>=0.2.3",
     "langchain-core>=0.3.56",
     "langchain-mcp-adapters>=0.0.9",
     "langchain-openai>=0.3.14",
@@ -34,6 +33,9 @@ docs = [
     "mkdocs-material>=9.6.12",
     "mkdocstrings-python>=1.16.10",
     "termynal>=0.13.0",
+]
+local = [
+    "langchain-chroma>=0.2.3",
 ]
 tests = [
     "pytest>=8.3.5",

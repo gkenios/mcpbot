@@ -956,7 +956,6 @@ dependencies = [
     { name = "azure-keyvault-secrets" },
     { name = "fastapi" },
     { name = "jinja2" },
-    { name = "langchain-chroma" },
     { name = "langchain-core" },
     { name = "langchain-mcp-adapters" },
     { name = "langchain-openai" },
@@ -981,6 +980,9 @@ docs = [
     { name = "mkdocstrings-python" },
     { name = "termynal" },
 ]
+local = [
+    { name = "langchain-chroma" },
+]
 tests = [
     { name = "pytest" },
 ]
@@ -992,7 +994,6 @@ requires-dist = [
     { name = "azure-keyvault-secrets", specifier = ">=4.9.0" },
     { name = "fastapi", specifier = ">=0.115.12" },
     { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "langchain-chroma", specifier = ">=0.2.3" },
     { name = "langchain-core", specifier = ">=0.3.56" },
     { name = "langchain-mcp-adapters", specifier = ">=0.0.9" },
     { name = "langchain-openai", specifier = ">=0.3.14" },
@@ -1017,6 +1018,7 @@ docs = [
     { name = "mkdocstrings-python", specifier = ">=1.16.10" },
     { name = "termynal", specifier = ">=0.13.0" },
 ]
+local = [{ name = "langchain-chroma", specifier = ">=0.2.3" }]
 tests = [{ name = "pytest", specifier = ">=8.3.5" }]
 
 [[package]]
