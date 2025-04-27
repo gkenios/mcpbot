@@ -12,7 +12,7 @@ router_v1 = APIRouter(prefix="/v1")
 async def messages_list(
     user: UserAuth,
     conversation_id: str,
-    order_by: OrderBy = "DESC",
+    order_by: OrderBy = "ASC",
 ) -> list[Message]:
     """Lists all messages of a conversation."""
     db = config.databases.chat["messages"]
