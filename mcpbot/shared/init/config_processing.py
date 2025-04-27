@@ -74,7 +74,7 @@ class ConfigSingleton(metaclass=Singleton):
                 kwargs = {
                     key: value
                     for key, value in db_config.__dict__.items()
-                    if key != "host"
+                    if key != "collections"
                 }
                 kwargs["collection"] = collect_value
                 if key == "vector":
