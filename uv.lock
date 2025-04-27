@@ -823,15 +823,15 @@ wheels = [
 
 [[package]]
 name = "langgraph-checkpoint"
-version = "2.0.24"
+version = "2.0.25"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "langchain-core" },
     { name = "ormsgpack" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0d/df/bacef68562ba4c391ded751eecda8e579ec78a581506064cf625e0ebd93a/langgraph_checkpoint-2.0.24.tar.gz", hash = "sha256:9596dad332344e7e871257be464df8a07c2e9bac66143081b11b9422b0167e5b", size = 37328, upload_time = "2025-04-02T22:47:34.255Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c5/72/d49828e6929cb3ded1472aa3e5e4a369d292c4f21021ac683d28fbc8f4f8/langgraph_checkpoint-2.0.25.tar.gz", hash = "sha256:77a63cab7b5f84dec1d49db561326ec28bdd48bcefb7fe4ac372069d2609287b", size = 36952, upload_time = "2025-04-26T21:00:43.5Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bc/60/30397e8fd2b7dead3754aa79d708caff9dbb371f30b4cd21802c60f6b921/langgraph_checkpoint-2.0.24-py3-none-any.whl", hash = "sha256:3836e2909ef2387d1fa8d04ee3e2a353f980d519fd6c649af352676dc73d66b8", size = 42028, upload_time = "2025-04-02T22:47:33.017Z" },
+    { url = "https://files.pythonhosted.org/packages/12/52/bceb5b5348c7a60ef0625ab0a0a0a9ff5d78f0e12aed8cc55c49d5e8a8c9/langgraph_checkpoint-2.0.25-py3-none-any.whl", hash = "sha256:23416a0f5bc9dd712ac10918fc13e8c9c4530c419d2985a441df71a38fc81602", size = 42312, upload_time = "2025-04-26T21:00:42.242Z" },
 ]
 
 [[package]]
@@ -956,6 +956,7 @@ dependencies = [
     { name = "azure-keyvault-secrets" },
     { name = "fastapi" },
     { name = "jinja2" },
+    { name = "langchain-chroma" },
     { name = "langchain-core" },
     { name = "langchain-mcp-adapters" },
     { name = "langchain-openai" },
@@ -965,11 +966,6 @@ dependencies = [
     { name = "python-multipart" },
     { name = "pytz" },
     { name = "types-pytz" },
-]
-
-[package.optional-dependencies]
-local = [
-    { name = "langchain-chroma" },
 ]
 
 [package.dev-dependencies]
@@ -996,7 +992,7 @@ requires-dist = [
     { name = "azure-keyvault-secrets", specifier = ">=4.9.0" },
     { name = "fastapi", specifier = ">=0.115.12" },
     { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "langchain-chroma", marker = "extra == 'local'", specifier = ">=0.2.3" },
+    { name = "langchain-chroma", specifier = ">=0.2.3" },
     { name = "langchain-core", specifier = ">=0.3.56" },
     { name = "langchain-mcp-adapters", specifier = ">=0.0.9" },
     { name = "langchain-openai", specifier = ">=0.3.14" },
@@ -1007,7 +1003,6 @@ requires-dist = [
     { name = "pytz", specifier = ">=2025.2" },
     { name = "types-pytz", specifier = ">=2025.2.0.20250326" },
 ]
-provides-extras = ["local"]
 
 [package.metadata.requires-dev]
 dev = [
