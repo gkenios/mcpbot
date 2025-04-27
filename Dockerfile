@@ -1,11 +1,15 @@
 FROM python:3.13-slim-bookworm
 
+WORKDIR /app
+
 # Get UV
 COPY --from=ghcr.io/astral-sh/uv:0.6.17 /uv /uvx /bin/
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Set working directory
-WORKDIR /app
+# TODO: Remove. Only needed for local run (chromadb)
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends build-essential \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy files
 COPY pyproject.toml uv.lock ./
@@ -16,4 +20,4 @@ RUN uv sync --locked --no-install-project
 
 EXPOSE 8000
 
-CMD ["uvicorn", "mcpbot.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]
+ENTRYPOINT ["uvicorn", "mcpbot.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]

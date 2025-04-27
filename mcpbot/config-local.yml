@@ -28,7 +28,7 @@ secrets:
     - name: null
       secrets:
       - name: embeddings_key  # Secret name in the application
-        value: EMBEDDINGS     # Secret name in the vault
+        value: LLM            # Secret name in the vault
       - name: joan_client_id
         value: JOANID
       - name: joan_client_secret

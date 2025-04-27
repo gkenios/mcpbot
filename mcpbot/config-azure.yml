@@ -36,7 +36,7 @@ secrets:
       - name: db_chat_key
         value: VECTORDB
       - name: embeddings_key
-        value: EMBEDDINGS
+        value: LLM
       - name: joan_client_id
         value: JOANID
       - name: joan_client_secret

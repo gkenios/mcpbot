@@ -36,7 +36,8 @@ class ConfigSingleton(metaclass=Singleton):
     """Class to store the configuration."""
 
     def __init__(self) -> None:
-        self.config = YamlConfig(**read_file(CONFIG_FILE))
+        self.yaml_config = YamlConfig(**read_file(CONFIG_FILE))
+
         # Process the secrets first
         self.secrets = self.get_secrets()
         # Then define the transformer models as vector databases need embeddings
@@ -51,9 +52,10 @@ class ConfigSingleton(metaclass=Singleton):
         )
 
     def get_models(self) -> AppModels:
+        model_config = self.yaml_config.models
         return AppModels(
-            embeddings=get_embeddings(**self.config.models.embeddings.__dict__),
-            llm=get_llm(**self.config.models.llm.__dict__),
+            embeddings=get_embeddings(**model_config.embeddings.__dict__),
+            llm=get_llm(**model_config.llm.__dict__),
         )
 
     def get_databases(self) -> AppDatabases:
@@ -61,7 +63,7 @@ class ConfigSingleton(metaclass=Singleton):
             chat: dict[str, ChatDB]
             vector: dict[str, VectorDB]
 
-        db = self.config.databases
+        db = self.yaml_config.databases
         app_databases_kwargs: DBTypes = {"chat": dict(), "vector": dict()}
         database_pickers = [get_chat_db, get_vector_db]
 
@@ -86,7 +88,7 @@ class ConfigSingleton(metaclass=Singleton):
 
     def get_secrets(self) -> dict[str, str]:
         secrets = dict()
-        for host in self.config.secrets.hosts:
+        for host in self.yaml_config.secrets.hosts:
             # Iterate over vaults
             for vault in host.vaults:
                 secrets_mapping = dict()
@@ -97,7 +99,7 @@ class ConfigSingleton(metaclass=Singleton):
                 retrieved_secrets = (
                     SecretFactory[host.name]
                     .value()
-                    .get(secrets_mapping.values(), vault.name)
+                    .get(list(set(secrets_mapping.values())), vault.name)
                 )
                 secrets.update(
                     {
@@ -106,7 +108,7 @@ class ConfigSingleton(metaclass=Singleton):
                     }
                 )
         # Re-red the config and parse the secrets
-        self.config = YamlConfig(**read_file(CONFIG_FILE, secrets))
+        self.yaml_config = YamlConfig(**read_file(CONFIG_FILE, secrets))
         return secrets
 
 
