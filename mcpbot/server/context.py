@@ -1,5 +1,4 @@
 import json
-from typing import Any
 
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel
@@ -10,7 +9,7 @@ class MetaContext(BaseModel):
     user_email: str
 
 
-def get_meta_context_value(context: Context[Any, Any], key: str) -> str | None:
+def get_meta_context_value(context: Context, key: str) -> str | None:  # type: ignore
     return (
         getattr(context.request_context.meta, key, None)
         if context.request_context.meta is not None

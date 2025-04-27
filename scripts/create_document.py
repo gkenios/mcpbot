@@ -26,5 +26,6 @@ if WRITE:
         }
         db_vector.upsert(id=id, text=text, metadata=metadata)
 else:
-    search = db_vector.search(question="Parking", method="cosine", n_docs=1)
+    question = "What are the holidays this year?"
+    search = db_vector.search(question=question, method="cosine", n_docs=1)
     print(search)

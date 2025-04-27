@@ -1,5 +1,5 @@
 import re
-from typing import Any, TypedDict
+from typing import TypedDict
 
 import httpx
 from mcp.server.fastmcp import Context
@@ -9,7 +9,7 @@ from mcpbot.shared.init import config
 
 
 def book_desk(
-    context: Context[Any, Any],
+    context: Context,  # type: ignore
     date: str,
     people: int = 1,
     city: str = "Amsterdam",

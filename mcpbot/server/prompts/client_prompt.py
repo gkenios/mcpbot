@@ -10,7 +10,7 @@ def client_prompt() -> str:
     weekday = time.strftime("%A")
     return f"""
 {COMPANY} is an international consulting firm. {COMPANY} employees are going to ask you questions. You can use tools to:
-- Answer a question that is related to {COMPANY}, the office, parking or in general with any information that can be potentially be found in the company's Frequently Asked Questions (FAQ) or Employee handbook.
+- Answer a question that is related to {COMPANY}, the office, parking, workdays/workhours or in general with any information that can be potentially be found in the company's Frequently Asked Questions (FAQ) or Employee handbook.
 - Book a desk for them in the office
 - Unbook a desk for them in the office
 
