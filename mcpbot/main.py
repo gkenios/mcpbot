@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi import FastAPI, Request, Response
 from mcp.server import FastMCP
 from mcp.server.sse import SseServerTransport
 from starlette.middleware.base import RequestResponseEndpoint
@@ -18,7 +18,7 @@ from mcpbot.server import prompts, tools
 from mcpbot.server.common import add_prompts_from_module, add_tools_from_module
 from mcpbot.server.context import MetaContext, inject_meta_context
 from mcpbot.shared import token
-from mcpbot.shared.auth import validate_user
+from mcpbot.shared.auth import UnauthorizedException, validate_user
 
 
 TITLE = "MCP Client & Server"
@@ -68,13 +68,6 @@ async def post_endpoint(request: Request) -> None:
     return await sse.handle_post_message(
         request.scope, request.receive, request._send
     )
-
-
-UnauthorizedException = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Missing Authorization header",
-    headers={"WWW-Authenticate": "Bearer"},
-)
 
 
 # Middleware for Authentication
