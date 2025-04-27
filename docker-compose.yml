@@ -1,7 +1,6 @@
 services:
   web:
     image: mcpbot:latest
-    env_file:
-      - .env
+    env_file: ".env"
     ports:
       - "8000:8000"
