@@ -12,7 +12,7 @@ COPY pyproject.toml uv.lock ./
 COPY mcpbot ./mcpbot
 
 # Install dependencies
-RUN uv sync --group local --locked --no-install-project
+RUN uv sync --locked --no-install-project
 
 EXPOSE 8000
 
