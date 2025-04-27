@@ -10,12 +10,6 @@ ENV PATH="/app/.venv/bin:$PATH"
 COPY pyproject.toml uv.lock ./
 COPY mcpbot ./mcpbot
 
-# TODO: Remove. Only needed for local run (chromadb)
-# RUN apt-get update \
-#   && apt-get install -y --no-install-recommends build-essential \
-#   && rm -rf /var/lib/apt/lists/*
-# RUN uv sync --group local --locked --no-install-project
-
 # Install dependencies
 RUN uv sync --locked --no-install-project
 
