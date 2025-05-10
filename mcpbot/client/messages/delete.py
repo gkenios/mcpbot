@@ -9,7 +9,7 @@ from mcpbot.shared.init import config
 router_v1 = APIRouter(prefix="/v1")
 
 
-@router_v1.delete("conversations/{conversation_id}/messages/{message_id}")
+@router_v1.delete("/conversations/{conversation_id}/messages/{message_id}")
 async def messages_delete(
     user: UserAuth,
     conversation_id: str,

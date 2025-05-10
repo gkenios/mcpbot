@@ -8,7 +8,7 @@ from mcpbot.shared.services.database_chat import Message, OrderBy
 router_v1 = APIRouter(prefix="/v1")
 
 
-@router_v1.get("conversations/{conversation_id}/messages")
+@router_v1.get("/conversations/{conversation_id}/messages")
 async def messages_list(
     user: UserAuth,
     conversation_id: str,
