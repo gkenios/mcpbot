@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from mcp.server import FastMCP
 from mcp.server.sse import SseServerTransport
 from starlette.middleware.base import RequestResponseEndpoint
@@ -19,6 +20,7 @@ from mcpbot.server.common import add_prompts_from_module, add_tools_from_module
 from mcpbot.server.context import MetaContext, inject_meta_context
 from mcpbot.shared import token
 from mcpbot.shared.auth import UnauthorizedException, validate_user
+from mcpbot.shared.config import CORS_ORIGINS
 
 
 TITLE = "MCP Client & Server"
@@ -31,6 +33,14 @@ app = FastAPI(
     swagger_ui_parameters={"defaultModelsExpandDepth": -1},
     docs_url="/",
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_headers=["*"],
+    allow_methods=["*"],
+    allow_origins=CORS_ORIGINS,
+)
+
 app.include_router(token.router, tags=["Auth"])
 app.include_router(conversations_create.router_v1, tags=["Conversations"])
 app.include_router(conversations_delete.router_v1, tags=["Conversations"])
