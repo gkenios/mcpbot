@@ -1,5 +1,7 @@
 services:
   web:
+    build:
+      context: .
     image: mcpbot:latest
     env_file: ".env"
     ports:
