@@ -2,7 +2,7 @@ import asyncio
 import httpx
 
 from mcpbot.shared.config import COMPANY, PORT
-
+from mcpbot.client.messages.create import CreateMessageResponse
 
 OPTION = 1
 EMAIL = f"georgios.gkenios@{COMPANY.lower()}.com"
@@ -41,7 +41,12 @@ async def main() -> None:
         ) as response:
             async for chunk in response.aiter_text():
                 await asyncio.sleep(0.01)
-                print(chunk, end="")
+                response = CreateMessageResponse(
+                    human=chunk["human"],
+                    ai=chunk["ai"],
+                )
+                print(response)
+                print("\n")
 
 
 if __name__ == "__main__":

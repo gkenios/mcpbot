@@ -30,7 +30,7 @@ class MessagesBody(BaseModel):
     message: str
 
 
-class CreateMessageResponse(BaseModel):
+class CreateMessageResponseItem(BaseModel):
     response_type: Literal["partial", "full"] = "partial"
     text: str
     id: str
@@ -38,6 +38,14 @@ class CreateMessageResponse(BaseModel):
     user_id: str
     role: Role
     created_at: str
+
+
+class CreateMessageResponse(BaseModel):
+    human: CreateMessageResponseItem
+    ai: CreateMessageResponseItem
+
+    def to_json(self) -> str:
+        return json.dumps(self.model_dump()) + "\n"
 
 
 @router_v1.post("/conversations/{conversation_id}/messages")
@@ -72,24 +80,24 @@ async def chat_streamer(
     ai_message_id = uuid4().hex
     ai_created_at = datetime.now(UTC).isoformat()
 
-    human_message_item = CreateMessageResponse(
-        id=human_message_id,
-        conversation_id=conversation_id,
-        user_id=user_id,
-        role="human",
-        text=human_message,
-        created_at=human_created_at,
+    response = CreateMessageResponse(
+        human=CreateMessageResponseItem(
+            id=human_message_id,
+            conversation_id=conversation_id,
+            user_id=user_id,
+            role="human",
+            text=human_message,
+            created_at=human_created_at,
+        ),
+        ai=CreateMessageResponseItem(
+            id=ai_message_id,
+            conversation_id=conversation_id,
+            user_id=user_id,
+            role="ai",
+            text="",
+            created_at=ai_created_at,
+        ),
     )
-    ai_message_item = CreateMessageResponse(
-        id=ai_message_id,
-        conversation_id=conversation_id,
-        user_id=user_id,
-        role="ai",
-        text="",
-        created_at=ai_created_at,
-    )
-
-    human_message_item_dict = human_message_item.model_dump()
 
     async with MultiServerMCPClient(
         {
@@ -112,19 +120,14 @@ async def chat_streamer(
         async for chunk, _ in stream:
             if isinstance(chunk, AIMessage):
                 full_response.append(chunk.content)  # type: ignore[arg-type]
-                ai_message_item.text = chunk.content  # type: ignore[arg-type]
-                yield json.dumps(
-                    [
-                        human_message_item_dict,
-                        ai_message_item.model_dump(),
-                    ]
-                )
+                response.ai.text = chunk.content  # type: ignore[arg-type]
+                yield response.to_json()
 
     # Update response objects
     ai_message = "".join(full_response)
-    ai_message_item.text = ai_message
-    human_message_item.response_type = "full"
-    ai_message_item.response_type = "full"
+    response.ai.text = ai_message
+    response.human.response_type = "full"
+    response.ai.response_type = "full"
 
     # Create the message in the database
     db_messages = config.databases.chat["messages"]
@@ -152,6 +155,4 @@ async def chat_streamer(
     )
     db_conv.update_conversation_timestamp(conversation_id, user_id=user_id)
 
-    yield json.dumps(
-        [human_message_item.model_dump(), ai_message_item.model_dump()]
-    )
+    yield response.to_json()
