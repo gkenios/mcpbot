@@ -22,6 +22,7 @@ async def conversations_create(user: UserAuth) -> Conversation:
 
     # USE_CASE_SPECIFIC: We want 1 conversation per user.
     conversation_id = user.user_id.split("@")[0]
-    db.delete_conversation(conversation_id, user.user_id)
+    if response := db.get_conversation(conversation_id, user.user_id):
+        return response
 
     return db.create_conversation(user.user_id, conversation_id=conversation_id)

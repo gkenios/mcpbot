@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from pathlib import Path
+import shutil
 from typing import Any, Literal
 from uuid import uuid4
 
@@ -111,6 +112,10 @@ class ChatDB(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def delete_all_messages(self, conversation_id: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     def list_conversations(
         self, user_id: str, order_by: OrderBy = "DESC"
     ) -> list[Conversation]:
@@ -168,6 +173,11 @@ class JsonChatDB(ChatDB):
         file_path = Path(self.path) / conversation_id / f"{message_id}.json"
         if file_path.exists():
             file_path.unlink()
+
+    def delete_all_messages(self, conversation_id: str) -> None:
+        messages_dir = Path(self.path) / conversation_id
+        if messages_dir.exists():
+            shutil.rmtree(messages_dir)
 
     def get_conversation(
         self, conversation_id: str, user_id: str
@@ -269,6 +279,9 @@ class AzureCosmosChatDB(ChatDB):
             self.client.delete_item(message_id, conversation_id)
         except self.read_item_error:
             pass
+
+    def delete_all_messages(self, conversation_id: str) -> None:
+        self.client.delete_all_items_by_partition_key(conversation_id)
 
     def get_conversation(
         self, conversation_id: str, user_id: str

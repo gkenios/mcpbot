@@ -15,5 +15,8 @@ async def conversations_delete(
 ) -> dict[str, Any]:
     """Deletes a conversation by its ID."""
     db = config.databases.chat["conversations"]
+    db_messages = config.databases.chat["messages"]
+
     db.delete_conversation(conversation_id, user.user_id)
+    db_messages.delete_all_messages(conversation_id)
     return {}
