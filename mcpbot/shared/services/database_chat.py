@@ -265,7 +265,10 @@ class AzureCosmosChatDB(ChatDB):
         self.client.delete_item(conversation_id, user_id)
 
     def delete_message(self, message_id: str, conversation_id: str) -> None:
-        self.client.delete_item(message_id, conversation_id)
+        try:
+            self.client.delete_item(message_id, conversation_id)
+        except self.read_item_error:
+            pass
 
     def get_conversation(
         self, conversation_id: str, user_id: str
