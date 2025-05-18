@@ -46,17 +46,25 @@ class ChatDB(ABC):
         return conversation
 
     def create_message(
-        self, conversation_id: str, user_id: str, role: Role, text: str
+        self,
+        conversation_id: str,
+        user_id: str,
+        role: Role,
+        text: str,
+        id: str | None = None,
+        created_at: str | None = None,
     ) -> Message:
-        message_id = uuid4().hex
-        timestamp = datetime.now(UTC).isoformat()
+        if not id:
+            id = uuid4().hex
+        if not created_at:
+            created_at = datetime.now(UTC).isoformat()
         message = Message(
-            id=message_id,
+            id=id,
             conversation_id=conversation_id,
             user_id=user_id,
             role=role,
             text=text,
-            created_at=timestamp,
+            created_at=created_at,
         )
         self._create_message(message)
         return message

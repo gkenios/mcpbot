@@ -1,4 +1,7 @@
-from typing import AsyncGenerator
+from datetime import datetime, UTC
+import json
+from typing import AsyncGenerator, Literal
+from uuid import uuid4
 
 from fastapi.responses import StreamingResponse
 from fastapi.routing import APIRouter
@@ -11,6 +14,7 @@ from mcpbot.server.prompts import client_prompt
 from mcpbot.shared.auth import UserAuth
 from mcpbot.shared.config import PORT
 from mcpbot.shared.init import config
+from mcpbot.shared.services.database_chat import Role
 
 
 MESSAGE_LIMIT = 6
@@ -24,6 +28,21 @@ router_v1 = APIRouter(prefix="/v1")
 
 class MessagesBody(BaseModel):
     message: str
+
+
+class CreateMessagePartialResponse(BaseModel):
+    response_type: Literal["partial"] = "partial"
+    text: str
+
+
+class CreateMessageResponse(BaseModel):
+    response_type: Literal["metadata", "full"]
+    text: str | None = None
+    id: str
+    conversation_id: str
+    user_id: str
+    role: Role
+    created_at: str
 
 
 @router_v1.post("/conversations/{conversation_id}/messages")
@@ -41,7 +60,7 @@ async def messages_create(
     history.append(HumanMessage(content=body.message))
     return StreamingResponse(
         chat_streamer(history, conversation_id, user.user_id),
-        media_type="text/event-stream",
+        media_type="application/x-ndjson",
     )
 
 
@@ -49,7 +68,38 @@ async def chat_streamer(
     messages: list[BaseMessage], conversation_id: str, user_id: str
 ) -> AsyncGenerator[str, None]:
     llm = config.models.llm
-    full_response = ""
+    full_response: list[str] = []
+
+    human_message: str = messages[-1].content  # type: ignore[assignment]
+    human_message_id = uuid4().hex
+    human_created_at = datetime.now(UTC).isoformat()
+
+    ai_message_id = uuid4().hex
+    ai_created_at = datetime.now(UTC).isoformat()
+
+    human_message_item = CreateMessageResponse(
+        response_type="metadata",
+        id=human_message_id,
+        conversation_id=conversation_id,
+        user_id=user_id,
+        role="human",
+        text=human_message,
+        created_at=human_created_at,
+    )
+    ai_message_item = CreateMessageResponse(
+        response_type="metadata",
+        id=ai_message_id,
+        conversation_id=conversation_id,
+        user_id=user_id,
+        role="ai",
+        text=None,
+        created_at=ai_created_at,
+    )
+
+    yield json.dumps(
+        [human_message_item.model_dump(), ai_message_item.model_dump()]
+    )
+
     async with MultiServerMCPClient(
         {
             "mcpbot": {
@@ -70,11 +120,18 @@ async def chat_streamer(
         stream = agent.astream({"messages": messages}, stream_mode="messages")
         async for chunk, _ in stream:
             if isinstance(chunk, AIMessage):
-                full_response += chunk.content  # type: ignore[operator]
-                yield chunk.content  # type: ignore[misc]
+                full_response.append(chunk.content)  # type: ignore[arg-type]
+                yield CreateMessagePartialResponse(
+                    text=chunk.content  # type: ignore[arg-type]
+                ).model_dump_json()
+
+    # Update response objects
+    ai_message = "".join(full_response)
+    ai_message_item.text = ai_message
+    human_message_item.response_type = "full"
+    ai_message_item.response_type = "full"
 
     # Create the message in the database
-    message: str = messages[-1].content  # type: ignore[assignment]
     db_messages = config.databases.chat["messages"]
     db_conv = config.databases.chat["conversations"]
 
@@ -86,12 +143,20 @@ async def chat_streamer(
         conversation_id=conversation_id,
         user_id=user_id,
         role="human",
-        text=message,
+        text=human_message,
+        id=human_message_id,
+        created_at=human_created_at,
     )
     db_messages.create_message(
         conversation_id=conversation_id,
         user_id=user_id,
         role="ai",
-        text=full_response,
+        text=ai_message,
+        id=ai_message_id,
+        created_at=ai_created_at,
     )
     db_conv.update_conversation_timestamp(conversation_id, user_id=user_id)
+
+    yield json.dumps(
+        [human_message_item.model_dump(), ai_message_item.model_dump()]
+    )
