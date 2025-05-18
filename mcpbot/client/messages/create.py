@@ -30,14 +30,9 @@ class MessagesBody(BaseModel):
     message: str
 
 
-class CreateMessagePartialResponse(BaseModel):
-    response_type: Literal["partial"] = "partial"
-    text: str
-
-
 class CreateMessageResponse(BaseModel):
-    response_type: Literal["metadata", "full"]
-    text: str | None = None
+    response_type: Literal["partial", "full"] = "partial"
+    text: str
     id: str
     conversation_id: str
     user_id: str
@@ -78,7 +73,6 @@ async def chat_streamer(
     ai_created_at = datetime.now(UTC).isoformat()
 
     human_message_item = CreateMessageResponse(
-        response_type="metadata",
         id=human_message_id,
         conversation_id=conversation_id,
         user_id=user_id,
@@ -87,18 +81,15 @@ async def chat_streamer(
         created_at=human_created_at,
     )
     ai_message_item = CreateMessageResponse(
-        response_type="metadata",
         id=ai_message_id,
         conversation_id=conversation_id,
         user_id=user_id,
         role="ai",
-        text=None,
+        text="",
         created_at=ai_created_at,
     )
 
-    yield json.dumps(
-        [human_message_item.model_dump(), ai_message_item.model_dump()]
-    )
+    human_message_item_dict = human_message_item.model_dump()
 
     async with MultiServerMCPClient(
         {
@@ -121,9 +112,13 @@ async def chat_streamer(
         async for chunk, _ in stream:
             if isinstance(chunk, AIMessage):
                 full_response.append(chunk.content)  # type: ignore[arg-type]
-                yield CreateMessagePartialResponse(
-                    text=chunk.content  # type: ignore[arg-type]
-                ).model_dump_json()
+                ai_message_item.text = chunk.content  # type: ignore[arg-type]
+                yield json.dumps(
+                    [
+                        human_message_item_dict,
+                        ai_message_item.model_dump(),
+                    ]
+                )
 
     # Update response objects
     ai_message = "".join(full_response)
