@@ -114,7 +114,7 @@ async def chat_streamer(
         async for chunk, _ in stream:
             if isinstance(chunk, AIMessage):
                 full_response.append(chunk.content)  # type: ignore[arg-type]
-                response.ai.text = chunk.content  # type: ignore[arg-type]
+                response.ai.text = chunk.content  # type: ignore[assignment]
                 yield response.to_json()
 
     response.ai.text = "".join(full_response)
