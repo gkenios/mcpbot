@@ -1,6 +1,6 @@
 from datetime import datetime, UTC
 import json
-from typing import AsyncGenerator, Literal
+from typing import AsyncGenerator
 from uuid import uuid4
 
 from fastapi.responses import StreamingResponse
@@ -14,7 +14,7 @@ from mcpbot.server.prompts import client_prompt
 from mcpbot.shared.auth import UserAuth
 from mcpbot.shared.config import PORT
 from mcpbot.shared.init import config
-from mcpbot.shared.services.database_chat import Role
+from mcpbot.shared.services.database_chat import Message
 
 
 MESSAGE_LIMIT = 6
@@ -23,29 +23,20 @@ MESSAGE_MAP: dict[str, type[BaseMessage]] = {
     "ai": AIMessage,
 }
 
-router_v1 = APIRouter(prefix="/v1")
-
 
 class MessagesBody(BaseModel):
     message: str
 
 
-class CreateMessageResponseItem(BaseModel):
-    response_type: Literal["partial", "full"] = "partial"
-    text: str
-    id: str
-    conversation_id: str
-    user_id: str
-    role: Role
-    created_at: str
-
-
 class CreateMessageResponse(BaseModel):
-    human: CreateMessageResponseItem
-    ai: CreateMessageResponseItem
+    human: Message
+    ai: Message
 
     def to_json(self) -> str:
         return json.dumps(self.model_dump()) + "\n"
+
+
+router_v1 = APIRouter(prefix="/v1")
 
 
 @router_v1.post("/conversations/{conversation_id}/messages")
@@ -61,6 +52,7 @@ async def messages_create(
         for entry in db_messages.list_messages(conversation_id)
     ]
     history.append(HumanMessage(content=body.message))
+
     return StreamingResponse(
         chat_streamer(history, conversation_id, user.user_id),
         media_type="application/x-ndjson",
@@ -73,6 +65,7 @@ async def chat_streamer(
     llm = config.models.llm
     full_response: list[str] = []
 
+    # Metadata
     human_message: str = messages[-1].content  # type: ignore[assignment]
     human_message_id = uuid4().hex
     human_created_at = datetime.now(UTC).isoformat()
@@ -80,21 +73,22 @@ async def chat_streamer(
     ai_message_id = uuid4().hex
     ai_created_at = datetime.now(UTC).isoformat()
 
+    # Response object
     response = CreateMessageResponse(
-        human=CreateMessageResponseItem(
+        human=Message(
+            role="human",
+            text=human_message,
             id=human_message_id,
             conversation_id=conversation_id,
             user_id=user_id,
-            role="human",
-            text=human_message,
             created_at=human_created_at,
         ),
-        ai=CreateMessageResponseItem(
+        ai=Message(
+            role="ai",
+            text="",
             id=ai_message_id,
             conversation_id=conversation_id,
             user_id=user_id,
-            role="ai",
-            text="",
             created_at=ai_created_at,
         ),
     )
@@ -123,36 +117,12 @@ async def chat_streamer(
                 response.ai.text = chunk.content  # type: ignore[arg-type]
                 yield response.to_json()
 
-    # Update response objects
-    ai_message = "".join(full_response)
-    response.ai.text = ai_message
-    response.human.response_type = "full"
-    response.ai.response_type = "full"
+    response.ai.text = "".join(full_response)
 
     # Create the message in the database
     db_messages = config.databases.chat["messages"]
     db_conv = config.databases.chat["conversations"]
-
-    db_messages.delete_over_n_messages(
-        conversation_id=conversation_id,
-        n_messages=MESSAGE_LIMIT,
-    )
-    db_messages.create_message(
-        conversation_id=conversation_id,
-        user_id=user_id,
-        role="human",
-        text=human_message,
-        id=human_message_id,
-        created_at=human_created_at,
-    )
-    db_messages.create_message(
-        conversation_id=conversation_id,
-        user_id=user_id,
-        role="ai",
-        text=ai_message,
-        id=ai_message_id,
-        created_at=ai_created_at,
-    )
+    db_messages.delete_over_n_messages(conversation_id, MESSAGE_LIMIT)
+    db_messages.create_message(**response.human.model_dump())
+    db_messages.create_message(**response.ai.model_dump())
     db_conv.update_conversation_timestamp(conversation_id, user_id=user_id)
-
-    yield response.to_json()
