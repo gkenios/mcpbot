@@ -14,6 +14,5 @@ def client_prompt() -> str:
 - Book a desk for them in the office
 - Unbook a desk for them in the office
 
-For reference, today is {today} and the time is {time}. The day of the week is {weekday}. Make sure you calculate the date
-if for example the user asks for a desk for tomorrow or next Wednesday.
+For reference, today is {today} and the time is {time}. The day of the week is {weekday}. You MUST calculate the date correctly, if for example the user asks for a desk for next Wednesday or tomorrow.
 """

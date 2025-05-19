@@ -1,11 +1,47 @@
+from dataclasses import dataclass
 import re
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 import httpx
-from mcp.server.fastmcp import Context
 
+from mcp.server.fastmcp import Context
 from mcpbot.server.context import get_meta_context_value
 from mcpbot.shared.init import config
+
+
+TIMEZONE = "Europe/Amsterdam"
+
+
+class JoanLocation(TypedDict):
+    building_id: str
+    floor_id: str
+    floor: int
+    city: str
+
+
+class JoanSeat(TypedDict):
+    id: str
+    name: str
+
+
+@dataclass
+class Timeslot:
+    time_from: str
+    time_to: str
+
+
+@dataclass
+class JoanTimeslots:
+    morning: Timeslot
+    afternoon: Timeslot
+    all_day: Timeslot
+
+
+joan_timeslots = JoanTimeslots(
+    morning=Timeslot(time_from="09:00", time_to="13:00"),
+    afternoon=Timeslot(time_from="13:00", time_to="17:00"),
+    all_day=Timeslot(time_from="09:00", time_to="17:00"),
+)
 
 
 def book_desk(
@@ -13,6 +49,7 @@ def book_desk(
     date: str,
     people: int = 1,
     city: str = "Amsterdam",
+    timeslot: Literal["morning", "afternoon", "all_day"] = "all_day",
     floor: int | None = None,
     desk_name: str | None = None,
 ) -> str:
@@ -22,6 +59,11 @@ def book_desk(
         date: The date of the reservation in the format "YYYY-MM-DD".
         people: The number of people to book desks for.
         city: The city where the office is located.
+        timeslot: The time slot for the reservation. It can be in:
+          - morning
+          - afternoon
+          - all_day
+          The default value is all_day.
         floor: The floor number where the desk is located.
         desk_name: The name of the desk to book. It can be in:
           - dual monitor
@@ -33,6 +75,7 @@ def book_desk(
     """
     # Context
     user_email = get_meta_context_value(context, "user_email")
+    joan_timeslot: Timeslot = getattr(joan_timeslots, timeslot)
 
     # Secrets
     secrets = config.secrets
@@ -43,18 +86,35 @@ def book_desk(
     if not user_email:
         return "User not identified."
 
+    # Default office (Amsterdam, 3rd floor)
+    if city.lower() == "amsterdam" and floor is None:
+        floor = 3
+
     token = get_token(client_id, client_secret)
     user_id, is_admin = get_user_id(token, company_id, user_email)
     if not user_id:
         return "User not found."
     if not is_admin:
         people = 1
-        if get_desk_reservation(token, company_id, user_id, date):
-            return "You already have a desk booked for this date."
+        if get_desk_reservation(
+            token=token,
+            company_id=company_id,
+            user_id=user_id,
+            date=date,
+            time_from=joan_timeslot.time_from,
+            time_to=joan_timeslot.time_to,
+        ):
+            return "You already have a desk booked for this date. You cannot make more than one reservation."
 
     building_id, floor_id = get_location(token, company_id, city, floor)
     number_of_seats = get_number_of_free_seats(
-        token, building_id, floor_id, date, desk_name
+        token=token,
+        building_id=building_id,
+        floor_id=floor_id,
+        date=date,
+        desk_name=desk_name,
+        time_from=joan_timeslot.time_from,
+        time_to=joan_timeslot.time_to,
     )
     if number_of_seats < people:
         return f"You requested desks for {people} people, but only {number_of_seats} are available."
@@ -68,10 +128,21 @@ def book_desk(
             date,
             desk_name,
             excluded_seats=excluded_seats,
+            time_from=joan_timeslot.time_from,
+            time_to=joan_timeslot.time_to,
         )
         if not seat_id:
             return f"While booking, someone else booked a desk and there are not enough desks. I booked {i} desks."
-        create_desk_reservation(token, company_id, user_id, seat_id, date)
+
+        create_desk_reservation(
+            token=token,
+            company_id=company_id,
+            user_id=user_id,
+            seat_id=seat_id,
+            date=date,
+            time_from=joan_timeslot.time_from,
+            time_to=joan_timeslot.time_to,
+        )
         excluded_seats.append(seat_id)
     return f"Desk(s) booked for {people} people on {date}."
 
@@ -106,13 +177,6 @@ def get_user_id(
     return None, False
 
 
-class JoanLocation(TypedDict):
-    building_id: str
-    floor_id: str
-    floor: int
-    city: str
-
-
 def get_locations(token: str, company_id: str) -> list[JoanLocation]:
     response = httpx.get(
         f"https://portal.getjoan.com/api/2.0/desk/company/{company_id}/desk",
@@ -121,7 +185,7 @@ def get_locations(token: str, company_id: str) -> list[JoanLocation]:
 
     buildings: list[JoanLocation] = []
     # Used [:-1] to exclude G Cloud building
-    for building in response["locations"][:-1]:
+    for building in response["locations"]:
         for floor in building["maps"]:
             try:
                 level = int(re.search(r"\d+", floor["name"]).group())  # type: ignore[union-attr]
@@ -134,7 +198,11 @@ def get_locations(token: str, company_id: str) -> list[JoanLocation]:
                 # Weird data quality for the city name
                 city=building["address"]["street"].lower(),
             )
+
             buildings.append(building_data)
+
+    # Workaround to avoid the G Cloud building. It is put last in the list
+    buildings.sort(key=lambda x: x["building_id"])
     return buildings
 
 
@@ -163,16 +231,16 @@ def create_desk_reservation(
     user_id: str,
     seat_id: str,
     date: str,
-    from_time: str = "09:00",
-    to_time: str = "17:00",
+    time_from: str = "09:00",
+    time_to: str = "17:00",
 ) -> None:
     httpx.post(
         f"https://portal.getjoan.com/api/2.0/desk/v2/company/{company_id}/reservation",
         json={
             "date": date,
-            "from": from_time,
-            "to": to_time,
-            "tz": "Europe/Amsterdam",
+            "from": time_from,
+            "to": time_to,
+            "tz": TIMEZONE,
             "seat_id": seat_id,
             "user_id": user_id,
         },
@@ -196,7 +264,7 @@ def get_number_of_free_seats(
             "date": date,
             "from": time_from,
             "to": time_to,
-            "tz": "Europe/Amsterdam",
+            "tz": TIMEZONE,
             "building_id": building_id,
             "floor_id": floor_id,
         },
@@ -211,11 +279,6 @@ def get_number_of_free_seats(
             desk for desk in results if desk_name in desk["name"].lower()
         ]
     return len(results)
-
-
-class JoanSeat(TypedDict):
-    id: str
-    name: str
 
 
 def get_seat_id(
@@ -234,7 +297,7 @@ def get_seat_id(
             "date": date,
             "from": time_from,
             "to": time_to,
-            "tz": "Europe/Amsterdam",
+            "tz": TIMEZONE,
             "building_id": building_id,
             "floor_id": floor_id,
         },
@@ -280,17 +343,33 @@ def get_desk_reservation(
     company_id: str,
     user_id: str,
     date: str,
+    time_from: str = "09:00",
+    time_to: str = "17:00",
 ) -> list[str] | None:
+    hour_from = int(time_from.split(":", 1)[0])
+    hour_to = int(time_to.split(":", 1)[0])
+
     response = httpx.get(
         f"https://portal.getjoan.com/api/2.0/desk/v2/company/{company_id}/reservation",
         params={
-            "from": f"{date} 00:00:00",
-            "to": f"{date} 23:59:59",
-            "tz": "Europe/Amsterdam",
+            "from": f"{date} {time_from}:00",
+            "to": f"{date} {time_to}:00",
+            "tz": TIMEZONE,
             "user_id": user_id,
         },
         headers={"Authorization": f"Bearer {token}"},
     ).json()
+
     if response:
-        return [desk["id"] for desk in response]
+        ids = []
+        for reservation in response:
+            reservation_hour_from = int(reservation["from"].split(":", 1)[0])
+            reservation_hour_to = int(reservation["to"].split(":", 1)[0])
+
+            if not (
+                hour_from >= reservation_hour_to
+                or hour_to <= reservation_hour_from
+            ):
+                ids.append(reservation["id"])
+        return ids
     return None
