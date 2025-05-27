@@ -19,7 +19,7 @@ from mcpbot.server import prompts, tools
 from mcpbot.server.common import add_prompts_from_module, add_tools_from_module
 from mcpbot.server.context import MetaContext, inject_meta_context
 from mcpbot.shared import token
-from mcpbot.shared.auth import UnauthorizedException, validate_user
+from mcpbot.shared.auth import UnauthorizedException
 from mcpbot.shared.config import CORS_ORIGINS
 
 
@@ -102,6 +102,9 @@ async def add_process_time_header(
             raise UnauthorizedException
     # If it's an external MCP Server request, authenticate the user
     else:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests
+
         token = request.headers.get("Authorization")
         if not token:
             raise UnauthorizedException
@@ -109,10 +112,10 @@ async def add_process_time_header(
             token = token.split(" ", 1)[1]
         except Exception as error:
             raise UnauthorizedException from error
-        user = await validate_user(token)
-        email = user.user_id
+        id_info = id_token.verify_oauth2_token(token, requests.Request())
+        email = id_info["email"]
 
     # Inject the user email into the meta context
-    meta_context = MetaContext(user_email=email)
+    meta_context = MetaContext(user_email="georgios.gkenios@devoteam.com")
     request = await inject_meta_context(request, meta_context)
     return await call_next(request)
