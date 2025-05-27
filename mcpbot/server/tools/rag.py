@@ -1,9 +1,8 @@
-from mcpbot.shared.config import COMPANY
 from mcpbot.shared.init import config
 
 
 def rag(question: str) -> str:
-    f"""Answers questions using the {COMPANY} knowledge base, with information
+    """Answers questions using the Devoteam knowledge base, with information
     that can be found in the FAQ or Employee handbook.
 
     Args:
