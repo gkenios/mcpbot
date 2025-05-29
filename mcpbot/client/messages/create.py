@@ -92,7 +92,7 @@ async def chat_streamer(
         ),
     )
 
-    async with MultiServerMCPClient(
+    client = MultiServerMCPClient(
         {
             "mcpbot": {
                 "url": f"http://localhost:{PORT}/mcp",
@@ -102,19 +102,19 @@ async def chat_streamer(
                 },
             }
         }
-    ) as client:
-        agent = create_react_agent(
-            model=llm,
-            tools=client.get_tools(),
-            prompt=client_prompt(),
-            version="v2",
-        )
-        stream = agent.astream({"messages": messages}, stream_mode="messages")
-        async for chunk, _ in stream:
-            if isinstance(chunk, AIMessage):
-                full_response.append(chunk.content)  # type: ignore[arg-type]
-                response.ai.text = chunk.content  # type: ignore[assignment]
-                yield response.to_json()
+    )
+
+    agent = create_react_agent(
+        model=llm,
+        tools=await client.get_tools(),
+        prompt=client_prompt(),
+    )
+    stream = agent.astream({"messages": messages}, stream_mode="messages")
+    async for chunk, _ in stream:
+        if isinstance(chunk, AIMessage):
+            full_response.append(chunk.content)  # type: ignore[arg-type]
+            response.ai.text = chunk.content  # type: ignore[assignment]
+            yield response.to_json()
 
     response.ai.text = "".join(full_response)
 

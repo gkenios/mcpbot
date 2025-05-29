@@ -57,7 +57,7 @@ async def validate_gcp_token(
         ) from error
 
     if hd := payload.get("hd"):
-        if hd != f"{COMPANY}.com":
+        if hd != f"{COMPANY.lower()}.com":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token: Domain mismatch.",
