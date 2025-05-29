@@ -1,8 +1,7 @@
 from typing import Any
 from fastapi import APIRouter
 
-from mcpbot.shared.auth import UserAuth
-from mcpbot.shared.init import config
+from mcpbot.shared.init import UserAuth, config
 
 
 router_v1 = APIRouter(prefix="/v1")

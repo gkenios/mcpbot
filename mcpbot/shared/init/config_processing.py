@@ -1,5 +1,6 @@
-from typing import TypedDict
+from typing import Annotated, Callable, TypedDict
 
+from fastapi import Depends
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 
@@ -7,7 +8,9 @@ from mcpbot.shared.config import CONFIG_FILE, DatabaseConfig, YamlConfig
 from mcpbot.shared.services import (
     ChatDB,
     SecretFactory,
+    User,
     VectorDB,
+    get_auth_method,
     get_chat_db,
     get_embeddings,
     get_llm,
@@ -27,6 +30,7 @@ class AppModels(ArbitaryTypesModel):
 
 
 class AppConfig(ArbitaryTypesModel):
+    auth: Callable[[str], User]
     databases: AppDatabases
     models: AppModels
     secrets: dict[str, str]
@@ -40,16 +44,23 @@ class ConfigSingleton(metaclass=Singleton):
 
         # Process the secrets first
         self.secrets = self.get_secrets()
+        # Then define the authentication method
+        self.auth = self.get_auth()
         # Then define the transformer models as vector databases need embeddings
         self.models = self.get_models()
         # Finally, define the databases
         self.databases = self.get_databases()
 
         self.app_config = AppConfig(
+            auth=self.auth,
             databases=self.databases,
             models=self.models,
             secrets=self.secrets,
         )
+
+    def get_auth(self) -> str:
+        """Get the authentication method."""
+        return get_auth_method(self.yaml_config.auth)
 
     def get_models(self) -> AppModels:
         model_config = self.yaml_config.models
@@ -113,3 +124,4 @@ class ConfigSingleton(metaclass=Singleton):
 
 
 config = ConfigSingleton().app_config
+UserAuth = Annotated[User, Depends(config.auth)]

@@ -1,4 +1,4 @@
-from .config_processing import config
+from .config_processing import UserAuth, config
 
 
-__all__ = ["config"]
+__all__ = ["UserAuth", "config"]

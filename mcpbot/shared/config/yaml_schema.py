@@ -54,6 +54,7 @@ class SecretsConfig(BaseModel):
 
 # Yaml
 class YamlConfig(BaseModel):
+    auth: Literal["local", *_SUPPORTED_CLOUD_PROVIDERS]  # type: ignore[valid-type]
     databases: DatabaseTypeConfig
     models: ModelsConfig
     secrets: SecretsConfig

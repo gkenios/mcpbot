@@ -1,3 +1,5 @@
+auth: gcp
+
 databases:
   chat:
     api_key: "{{ db_chat_key }}"

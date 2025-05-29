@@ -1,3 +1,5 @@
+auth: local
+
 databases:
   chat:
     endpoint: ./.chatdb

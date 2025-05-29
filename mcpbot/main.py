@@ -18,9 +18,8 @@ from mcpbot.client.messages import (
 from mcpbot.server import prompts, tools
 from mcpbot.server.common import add_prompts_from_module, add_tools_from_module
 from mcpbot.server.context import MetaContext, inject_meta_context
-from mcpbot.shared import token
-from mcpbot.shared.auth import UnauthorizedException, validate_user
 from mcpbot.shared.config import CORS_ORIGINS
+from mcpbot.shared.init import config
 
 
 TITLE = "MCP Client & Server"
@@ -41,7 +40,6 @@ app.add_middleware(
     allow_origins=CORS_ORIGINS,
 )
 
-app.include_router(token.router, tags=["Auth"])
 app.include_router(conversations_create.router_v1, tags=["Conversations"])
 app.include_router(conversations_delete.router_v1, tags=["Conversations"])
 app.include_router(conversations_list.router_v1, tags=["Conversations"])
@@ -99,17 +97,17 @@ async def add_process_time_header(
     elif is_mcp_call and is_local_call:
         email = request.headers.get("user_email")
         if not email:
-            raise UnauthorizedException
+            raise ValueError("Missing user_email header in local MCP request.")
     # If it's an external MCP Server request, authenticate the user
     else:
         token = request.headers.get("Authorization")
         if not token:
-            raise UnauthorizedException
+            raise ValueError("Missing Authorization header in MCP request.")
         try:
             token = token.split(" ", 1)[1]
         except Exception as error:
-            raise UnauthorizedException from error
-        user = await validate_user(token)
+            raise ValueError("Invalid Authorization header format") from error
+        user = await config.auth(token)
         email = user.user_id
 
     # Inject the user email into the meta context
