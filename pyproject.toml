@@ -9,27 +9,26 @@ dependencies = [
     "azure-identity>=1.23.0",
     "azure-keyvault-secrets>=4.9.0",
     "fastapi>=0.115.12",
-    "google-auth>=2.39.0",
+    "google-auth>=2.40.2",
     "jinja2>=3.1.6",
     "langchain-mcp-adapters>=0.1.4",
     "langchain-openai>=0.3.18",
     "langgraph>=0.4.7",
-    "mcp>=1.9.2",
     "pytz>=2025.2",
     "types-pytz>=2025.2.0.20250516",
 ]
 
 [dependency-groups]
 dev = [
-    "mypy>=1.15.0",
+    "mypy>=1.16.0",
     "pre-commit>=4.2.0",
-    "ruff>=0.11.7",
-    "types-pyyaml>=6.0.12.20250402",
+    "ruff>=0.11.12",
+    "types-pyyaml>=6.0.12.20250516",
 ]
 docs = [
     "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.12",
-    "mkdocstrings-python>=1.16.10",
+    "mkdocs-material>=9.6.14",
+    "mkdocstrings-python>=1.16.11",
     "termynal>=0.13.0",
 ]
 local = [

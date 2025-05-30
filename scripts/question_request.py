@@ -1,8 +1,10 @@
 import asyncio
 import httpx
+import json
 
 from mcpbot.shared.config import COMPANY, PORT
 from mcpbot.client.messages.create import CreateMessageResponse
+
 
 OPTION = 1
 EMAIL = f"georgios.gkenios@{COMPANY.lower()}.com"
@@ -19,11 +21,7 @@ match OPTION:
 
 
 async def main() -> None:
-    token = httpx.post(
-        url=f"http://localhost:{PORT}/token",
-        data={"username": EMAIL, "password": "gg"},
-    ).json()["access_token"]
-
+    token = "-"
     async with httpx.AsyncClient(timeout=None) as client:
         # Create a conversation
         response = await client.post(
@@ -39,14 +37,9 @@ async def main() -> None:
             headers={"Authorization": f"Bearer {token}"},
             json={"message": QUESTION},
         ) as response:
-            async for chunk in response.aiter_text():
-                await asyncio.sleep(0.01)
-                response = CreateMessageResponse(
-                    human=chunk["human"],
-                    ai=chunk["ai"],
-                )
-                print(response)
-                print("\n")
+            async for chunk in response.aiter_bytes():
+                response = CreateMessageResponse(**json.loads(chunk))
+                print(response.ai.text, end="", flush=True)
 
 
 if __name__ == "__main__":

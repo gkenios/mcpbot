@@ -1,5 +1,4 @@
 from datetime import datetime, UTC
-import json
 from typing import AsyncGenerator
 from uuid import uuid4
 
@@ -31,9 +30,6 @@ class CreateMessageResponse(BaseModel):
     human: Message
     ai: Message
 
-    def to_json(self) -> str:
-        return json.dumps(self.model_dump()) + "\n"
-
 
 router_v1 = APIRouter(prefix="/v1")
 
@@ -54,7 +50,7 @@ async def messages_create(
 
     return StreamingResponse(
         chat_streamer(history, conversation_id, user.user_id),
-        media_type="application/x-ndjson",
+        media_type="application/json",
     )
 
 
@@ -114,7 +110,7 @@ async def chat_streamer(
         if isinstance(chunk, AIMessage):
             full_response.append(chunk.content)  # type: ignore[arg-type]
             response.ai.text = chunk.content  # type: ignore[assignment]
-            yield response.to_json()
+            yield response.model_dump_json()
 
     response.ai.text = "".join(full_response)
 
