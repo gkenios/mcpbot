@@ -1,9 +1,10 @@
 import asyncio
 import httpx
 import json
+import os
 
 from mcpbot.shared.config import COMPANY, PORT
-from mcpbot.client.messages.create import CreateMessageResponse
+from mcpbot.client.endpoints.messages.create import CreateMessageResponse
 
 
 OPTION = 1
@@ -21,13 +22,21 @@ match OPTION:
 
 
 async def main() -> None:
-    token = "-"
+    # Get an acess token
+    provider_token = os.popen("gcloud auth print-identity-token").read().strip()
+    response = httpx.post(
+        url=f"http://localhost:{PORT}/token",
+        data={"token": provider_token},
+    )
+    token = response.json()["access_token"]
+
     async with httpx.AsyncClient(timeout=None) as client:
         # Create a conversation
         response = await client.post(
             url=f"http://localhost:{PORT}/v1/conversations",
             headers={"Authorization": f"Bearer {token}"},
         )
+        response.raise_for_status()
         conversation_id = response.json()["id"]
 
         # Send a message to the conversation

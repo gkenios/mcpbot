@@ -1,14 +1,13 @@
-from typing import Annotated, Callable, TypedDict
+from typing import Callable, TypedDict
 
-from fastapi import Depends
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from mcpbot.shared.config import CONFIG_FILE, DatabaseConfig, YamlConfig
 from mcpbot.shared.services import (
     ChatDB,
+    CommonTokenParams,
     SecretFactory,
-    User,
     VectorDB,
     get_auth_method,
     get_chat_db,
@@ -30,7 +29,7 @@ class AppModels(ArbitaryTypesModel):
 
 
 class AppConfig(ArbitaryTypesModel):
-    auth: Callable[[str], User]
+    auth: Callable[[str], CommonTokenParams]
     databases: AppDatabases
     models: AppModels
     secrets: dict[str, str]
@@ -124,4 +123,3 @@ class ConfigSingleton(metaclass=Singleton):
 
 
 config = ConfigSingleton().app_config
-UserAuth = Annotated[User, Depends(config.auth)]

@@ -1,4 +1,4 @@
-auth: local
+auth: gcp
 
 databases:
   chat:
@@ -39,3 +39,7 @@ secrets:
         value: JOANCOMPANYID
       - name: llm_key
         value: LLM
+      - name: access_token_key
+        value: ACCESSTOKENKEY
+      - name: refresh_token_key
+        value: REFRESHTOKENKEY

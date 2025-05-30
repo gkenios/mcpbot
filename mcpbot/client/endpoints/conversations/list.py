@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
-from mcpbot.shared.init import UserAuth, config
+from mcpbot.client.oauth2 import UserAuth
+from mcpbot.shared.init import config
 from mcpbot.shared.services.database_chat import Conversation, OrderBy
 
 

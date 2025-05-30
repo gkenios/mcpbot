@@ -9,9 +9,10 @@ from langchain_mcp_adapters.client import MultiServerMCPClient  # type: ignore[i
 from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel
 
+from mcpbot.client.oauth2 import UserAuth
 from mcpbot.server.prompts import client_prompt
 from mcpbot.shared.config import PORT
-from mcpbot.shared.init import UserAuth, config
+from mcpbot.shared.init import config
 from mcpbot.shared.services.database_chat import Message
 
 

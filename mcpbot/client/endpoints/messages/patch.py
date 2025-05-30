@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
+from mcpbot.client.oauth2 import UserAuth
 from .create import messages_create, MessagesBody
 from .delete import messages_delete
-from mcpbot.shared.init import UserAuth
 
 
 router_v1 = APIRouter(prefix="/v1")

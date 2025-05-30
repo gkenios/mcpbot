@@ -4,22 +4,23 @@ from mcp.server import FastMCP
 from mcp.server.sse import SseServerTransport
 from starlette.middleware.base import RequestResponseEndpoint
 
-from mcpbot.client.conversations import (
+from mcpbot.client.endpoints.auth.token import router as auth_router
+from mcpbot.client.endpoints.conversations import (
     conversations_create,
     conversations_delete,
     conversations_list,
 )
-from mcpbot.client.messages import (
+from mcpbot.client.endpoints.messages import (
     messages_create,
     messages_delete,
     messages_list,
     messages_patch,
 )
+from mcpbot.client.oauth2 import validate_user
 from mcpbot.server import prompts, tools
 from mcpbot.server.common import add_prompts_from_module, add_tools_from_module
 from mcpbot.server.context import MetaContext, inject_meta_context
 from mcpbot.shared.config import CORS_ORIGINS
-from mcpbot.shared.init import config
 
 
 TITLE = "MCP Client & Server"
@@ -40,6 +41,7 @@ app.add_middleware(
     allow_origins=CORS_ORIGINS,
 )
 
+app.include_router(auth_router, tags=["Auth"])
 app.include_router(conversations_create.router_v1, tags=["Conversations"])
 app.include_router(conversations_delete.router_v1, tags=["Conversations"])
 app.include_router(conversations_list.router_v1, tags=["Conversations"])
@@ -107,8 +109,8 @@ async def add_process_time_header(
             token = token.split(" ", 1)[1]
         except Exception as error:
             raise ValueError("Invalid Authorization header format") from error
-        user = await config.auth(token)
-        email = user.user_id
+        user = await validate_user(token)
+        email = user.email
 
     # Inject the user email into the meta context
     meta_context = MetaContext(user_email=email)

@@ -1,6 +1,7 @@
-from mcpbot.shared.config import COMPANY
 from datetime import datetime
 from pytz import timezone
+
+from mcpbot.shared.config import COMPANY
 
 
 def client_prompt() -> str:

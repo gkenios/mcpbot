@@ -1,9 +1,8 @@
 from enum import StrEnum
 import os
-from typing import Annotated, Callable
+from typing import Callable
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import HTTPException, status
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from google.auth.exceptions import GoogleAuthError
@@ -12,33 +11,32 @@ from pydantic import BaseModel
 from mcpbot.shared.config import COMPANY
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
 class AuthProvider(StrEnum):
     local = "local"
     azure = "azure"
     gcp = "gcp"
 
 
-class User(BaseModel):
-    user_id: str
+class CommonTokenParams(BaseModel):
+    sub: str
+    hd: str
+    email: str
 
 
-def validate_local_token() -> User:
+def validate_local_token(token: str) -> CommonTokenParams:
     """Skip local authentication. Return user based on environment variable."""
-    return User(user_id=os.getenv("USER_EMAIL"))
+    return CommonTokenParams(
+        sub="1",
+        hd=f"{COMPANY.lower()}.com",
+        email=os.getenv("USER_EMAIL"),
+    )
 
 
-async def validate_azure_token(
-    token: Annotated[str, Depends(oauth2_scheme)],
-) -> User:
+def validate_azure_token(token: str) -> CommonTokenParams:
     raise NotImplementedError("Azure token validation is not implemented yet.")
 
 
-async def validate_gcp_token(
-    token: Annotated[str, Depends(oauth2_scheme)],
-) -> User:
+def validate_gcp_token(token: str) -> CommonTokenParams:
     """
     Validate a Google authentication token and return the user information.
 
@@ -53,27 +51,27 @@ async def validate_gcp_token(
     except GoogleAuthError as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token",
+            detail="Validating google oauth2 token failed.",
         ) from error
 
-    if hd := payload.get("hd"):
-        if hd != f"{COMPANY.lower()}.com":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token: Domain mismatch.",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-    if email := payload.get("email"):
-        if not email:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token: User identity not found.",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-    return User(user_id=email)
+    if payload.get("hd") != f"{COMPANY.lower()}.com":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token: Domain mismatch.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    elif not payload.get("email"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token: User email not found.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return CommonTokenParams(**payload)
 
 
-def get_auth_method(provider: AuthProvider) -> Callable[[str], User]:
+def get_auth_method(
+    provider: AuthProvider,
+) -> Callable[[str], CommonTokenParams]:
     """
     Get the authentication provider based on the specified provider type.
 
