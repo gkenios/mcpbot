@@ -3,7 +3,7 @@ FROM python:3.13-alpine
 WORKDIR /app
 
 # Get UV
-COPY --from=ghcr.io/astral-sh/uv:0.6.17 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.7.9 /uv /uvx /bin/
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy files
