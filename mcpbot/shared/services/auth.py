@@ -25,10 +25,17 @@ class CommonTokenParams(BaseModel):
 
 def validate_local_token(token: str) -> CommonTokenParams:
     """Skip local authentication. Return user based on environment variable."""
+    email = os.getenv("USER_EMAIL")
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="'USER_EMAIL' not found in environment variables.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return CommonTokenParams(
         sub="1",
         hd=f"{COMPANY.lower()}.com",
-        email=os.getenv("USER_EMAIL"),
+        email=email,
     )
 
 
@@ -46,8 +53,8 @@ def validate_gcp_token(token: str) -> CommonTokenParams:
         expected domain.
     """
     try:
-        request = requests.Request()
-        payload = id_token.verify_oauth2_token(token, request, audience=None)
+        request = requests.Request()  # type: ignore[no-untyped-call]
+        payload = id_token.verify_oauth2_token(token, request, audience=None)  # type: ignore[no-untyped-call]
     except GoogleAuthError as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

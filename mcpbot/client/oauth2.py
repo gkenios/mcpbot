@@ -36,7 +36,7 @@ def create_token(
     data: DefinedTokenParams,
     expires_in: int,
     encryption_key: str,
-) -> OAuthToken:
+) -> str:
     issued_at = int(time.time())
 
     if isinstance(data, BaseModel):

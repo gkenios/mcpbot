@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import re
-from typing import Literal, TypedDict
+from typing import Any, Literal, TypedDict
 
 import httpx
 
@@ -23,7 +23,7 @@ class JoanSeat(TypedDict):
 
 
 class JoanAPI:
-    def __init__(self):
+    def __init__(self) -> None:
         self.base_url = "https://portal.getjoan.com/api"
         self.api_version = "2.0"
         self.company_id = config.secrets["joan_company_id"]
@@ -36,8 +36,8 @@ class JoanAPI:
         self,
         method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
         url: str,
-        params: dict | None = None,
-    ) -> dict:
+        params: dict[str, Any] | None = None,
+    ) -> Any:
         """Send a request to the Joan API."""
         response = httpx.request(
             method=method,

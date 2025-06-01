@@ -3,7 +3,7 @@
     {
       "id": "api-key",
       "type": "promptString",
-      "description": "Enter your Google Auth Token",
+      "description": "Enter your mcpbot Auth Token",
       "password": true
     }
   ],

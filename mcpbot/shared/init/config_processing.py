@@ -57,7 +57,7 @@ class ConfigSingleton(metaclass=Singleton):
             secrets=self.secrets,
         )
 
-    def get_auth(self) -> str:
+    def get_auth(self) -> Callable[[str], CommonTokenParams]:
         """Get the authentication method."""
         return get_auth_method(self.yaml_config.auth)
 
