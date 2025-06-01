@@ -16,7 +16,7 @@ from mcpbot.client.endpoints.messages import (
     messages_list,
     messages_patch,
 )
-from mcpbot.client.oauth2 import validate_user
+from mcpbot.client.oauth2 import validate_access_token
 from mcpbot.server import prompts, tools
 from mcpbot.server.common import add_prompts_from_module, add_tools_from_module
 from mcpbot.server.context import MetaContext, inject_meta_context
@@ -109,7 +109,7 @@ async def add_process_time_header(
             token = token.split(" ", 1)[1]
         except Exception as error:
             raise ValueError("Invalid Authorization header format") from error
-        user = await validate_user(token)
+        user = validate_access_token(token)
         email = user.email
 
     # Inject the user email into the meta context

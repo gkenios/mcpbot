@@ -51,7 +51,7 @@ async def messages_create(
 
     return StreamingResponse(
         chat_streamer(history, conversation_id, user.user_id),
-        media_type="application/json",
+        media_type="text/event-stream",
     )
 
 

@@ -104,7 +104,6 @@ def validate_token(
             options={"verify_iat": True, "verify_exp": True},
             issuer=HOST_URL,
         )
-        print(payload)
         return CommonTokenParams(**payload)
     except jwt.InvalidTokenError as e:
         raise ValueError(f"Invalid token: {e}")
