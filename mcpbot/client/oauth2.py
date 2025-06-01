@@ -123,9 +123,14 @@ async def validate_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
     """
     Validate the user based on the provided token.
 
-    :param token: The access token to validate.
-    :return: User information if the token is valid.
-    :raises HTTPException: If the token is invalid or expired.
+    Args:
+        token: The access token to validate.
+
+    Returns:
+        The User object containing user_id and email.
+
+    Raises:
+        HTTPException: If the token is invalid or expired.
     """
     try:
         token_data = validate_access_token(token)

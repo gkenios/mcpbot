@@ -21,6 +21,14 @@ async def token(
         Form(),
     ] = "authorization_code",
 ) -> OAuthToken:
+    """Generates an access token based on the provided grant type.
+    - `authorization_code`: Uses the provided token to exchange for an access token.
+    - `refresh_token`: Uses the provided token to refresh the access token.
+
+    When refreshing a token, the refresh token will not be refreshed, but only
+    the access token. In order to get a new refresh token, the user must
+    re-authenticate using the authorization code flow.
+    """
     if grant_type == "authorization_code":
         exchange_token = config.auth(token)
         return create_access_token_from_password(exchange_token)
