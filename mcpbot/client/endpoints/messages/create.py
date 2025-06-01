@@ -50,13 +50,16 @@ async def messages_create(
     history.append(HumanMessage(content=body.message))
 
     return StreamingResponse(
-        chat_streamer(history, conversation_id, user.user_id),
+        chat_streamer(history, conversation_id, user.user_id, user.email),
         media_type="text/event-stream",
     )
 
 
 async def chat_streamer(
-    messages: list[BaseMessage], conversation_id: str, user_id: str
+    messages: list[BaseMessage],
+    conversation_id: str,
+    user_id: str,
+    email: str,
 ) -> AsyncGenerator[str, None]:
     llm = config.models.llm
     full_response: list[str] = []
@@ -95,7 +98,7 @@ async def chat_streamer(
                 "url": f"http://localhost:{PORT}/mcp",
                 "transport": "sse",
                 "headers": {
-                    "user_email": user_id,
+                    "user_email": email,
                 },
             }
         }
