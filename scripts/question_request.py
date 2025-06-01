@@ -47,8 +47,8 @@ async def main() -> None:
             json={"message": QUESTION},
         ) as response:
             async for chunk in response.aiter_bytes():
-                response = CreateMessageResponse(**json.loads(chunk))
-                print(response.ai.text, end="", flush=True)
+                response = CreateMessageResponse(**json.loads(chunk))  # type: ignore[assignment]
+                print(response.ai.text, end="", flush=True)  # type: ignore[attr-defined]
 
 
 if __name__ == "__main__":
