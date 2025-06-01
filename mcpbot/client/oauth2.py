@@ -78,9 +78,8 @@ def create_access_token_from_password(data: DefinedTokenParams) -> OAuthToken:
 
 def create_access_token_from_refresh(refresh_token: str) -> OAuthToken:
     data = validate_refresh_token(refresh_token)
-
     access_token = create_token(
-        data=CommonTokenParams(**data),
+        data=data,
         expires_in=ACCESS_TOKEN_EXPIRES_IN,
         encryption_key=config.secrets["access_token_key"],
     )
