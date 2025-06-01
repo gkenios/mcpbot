@@ -1,0 +1,18 @@
+{
+  "inputs": [
+    {
+      "id": "api-key",
+      "type": "promptString",
+      "description": "Enter your Google Auth Token",
+      "password": true
+    }
+  ],
+  "servers": {
+    "devobot": {
+      "url": "http://127.0.0.1:8000/mcp",
+      "headers": {
+        "Authorization": "Bearer ${input:api-key}"
+      }
+    }
+  }
+}
