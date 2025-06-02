@@ -1,4 +1,4 @@
-auth: gcp
+auth: local
 
 databases:
   chat:

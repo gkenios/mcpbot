@@ -22,6 +22,19 @@ class JoanSeat(TypedDict):
     name: str
 
 
+@dataclass
+class Timeslot:
+    time_from: str
+    time_to: str
+
+
+@dataclass
+class JoanTimeslots:
+    morning: Timeslot
+    afternoon: Timeslot
+    all_day: Timeslot
+
+
 class JoanAPI:
     def __init__(self) -> None:
         self.base_url = "https://portal.getjoan.com/api"
@@ -37,6 +50,7 @@ class JoanAPI:
         method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
         url: str,
         params: dict[str, Any] | None = None,
+        return_json: bool = True,
     ) -> Any:
         """Send a request to the Joan API."""
         response = httpx.request(
@@ -47,7 +61,8 @@ class JoanAPI:
             json=params if method != "GET" else None,
         )
         response.raise_for_status()
-        return response.json()
+        if return_json:
+            return response.json()
 
     def get_token(self, client_id: str, client_secret: str) -> str:
         """Get the access token for the Joan API using client credentials."""
@@ -73,6 +88,7 @@ class JoanAPI:
             if user["email"] == email:
                 user_id = user["id"]
                 is_admin = user["groups"] != ["portal_user"]
+                print("User ID:", user_id)
                 return (user_id, is_admin)
         return None, False
 
@@ -255,7 +271,9 @@ class JoanAPI:
                 "user_id": user_id,
             },
         )
-
+        response = [
+            element for element in response if element["user"]["id"] == user_id
+        ]
         if response:
             ids = []
             for reservation in response:
@@ -288,6 +306,9 @@ class JoanAPI:
                 "user_id": user_id,
             },
         )
+        response = [
+            element for element in response if element["user"]["id"] == user_id
+        ]
         if response:
             return [desk["id"] for desk in response]
         return None
@@ -305,21 +326,9 @@ class JoanAPI:
             self.send_request(
                 method="DELETE",
                 url=f"/desk/v2/reservation/{reservation_id}",
+                return_json=False,
             )
         return "Reservations deleted"
-
-
-@dataclass
-class Timeslot:
-    time_from: str
-    time_to: str
-
-
-@dataclass
-class JoanTimeslots:
-    morning: Timeslot
-    afternoon: Timeslot
-    all_day: Timeslot
 
 
 JOAN_TIMESLOTS = JoanTimeslots(
