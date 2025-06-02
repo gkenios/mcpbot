@@ -21,6 +21,8 @@ def unbook_parking(
     """
     # Context
     user_email = get_meta_context_value(context, "user_email")
+    if not user_email:
+        return "User not identified."
 
     api = JoanAPI()
     parking = api.get_user_parking_spot(user_email, date, start_time, end_time)

@@ -376,7 +376,7 @@ class JoanAPI:
         date: str,
         start_time: str = "09:00",
         end_time: str = "17:00",
-    ) -> list[str]:
+    ) -> str | Reservation:
         """Get an available parking spot for a given date and time range."""
         response = self.send_request(
             method="GET",
@@ -388,7 +388,7 @@ class JoanAPI:
             },
         )
 
-        free_spots = []
+        free_spots: list[str] = []
         for parking_spot in response["results"]:
             booked_spots = parking_spot["schedule"]
             if not booked_spots:
@@ -407,7 +407,7 @@ class JoanAPI:
         date: str,
         start_time: str = "09:00",
         end_time: str = "17:00",
-    ) -> str:
+    ) -> str | Reservation:
         """Get the parking spot ID for a user on a given date and time range."""
         response = self.send_request(
             method="GET",
@@ -420,7 +420,7 @@ class JoanAPI:
             },
         )
         for reservation in response["results"]:
-            return reservation["id"]
+            return reservation["id"]  # type: ignore[no-any-return]
         return Reservation.RESERVATION_NOT_FOUND
 
     def create_parking_reservation(
