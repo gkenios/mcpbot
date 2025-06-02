@@ -3,7 +3,8 @@ from mcpbot.shared.init import config
 
 def rag(question: str) -> str:
     """Answers questions using the Devoteam knowledge base, with information
-    that can be found in the FAQ or Employee handbook.
+    that can be found in the FAQ or Employee handbook. Always reference the
+    sources with the link.
 
     Args:
         question: The question to answer.

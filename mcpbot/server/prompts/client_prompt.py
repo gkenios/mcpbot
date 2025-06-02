@@ -1,8 +1,6 @@
 from datetime import datetime
 from pytz import timezone
 
-from mcpbot.shared.config import COMPANY
-
 
 def client_prompt() -> str:
     """General prompt for what the client agent is allowed to do."""
@@ -10,8 +8,8 @@ def client_prompt() -> str:
     today = time.strftime("%Y-%m-%d")
     weekday = time.strftime("%A")
     return f"""
-{COMPANY} is an international consulting firm. {COMPANY} employees are going to ask you questions. You can use tools to:
-• Answer a question that is related to {COMPANY}, the office, parking, workdays/workhours or in general with any information that can be potentially be found in the company's Frequently Asked Questions (FAQ) or Employee handbook.
+Devoteam is an international consulting firm. Devoteam employees are going to ask you questions. You can use tools to:
+• Answer a question that is related to Devoteam, the office, parking, workdays/workhours or in general with any information that can be potentially be found in the company's Frequently Asked Questions (FAQ) or Employee handbook. Always reference the sources with the link.
 • Book a desk for them in the office (book_desk)
 • Unbook a desk for them in the office (unbook_desk)
 • Find out if a person or which people are in the office on a given date (people_in_office)
