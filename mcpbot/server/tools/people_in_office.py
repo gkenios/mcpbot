@@ -1,7 +1,7 @@
 from mcpbot.server.tools.common.joan_api import JoanAPI
 
 
-def people_in_office(date: str, name: str | None = None) -> str:  # type: ignore[type-arg]
+def people_in_office(date: str, name: str | None = None) -> str:
     """Find which people will be in the office on a given date. If a specific
     name is provided, only return information about that person. Respond with
     the full names, to avoid confusion with similar names.

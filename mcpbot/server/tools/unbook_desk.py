@@ -5,7 +5,7 @@ from mcpbot.server.tools.common.joan_api import JoanAPI
 
 
 def unbook_desk(context: Context, date: str) -> str:  # type: ignore[type-arg]
-    """Deletes a desk reservation (or multiple) for a user on a given date.
+    """Delete a desk reservation (or multiple) for a user on a given date.
 
     Args:
         date: The date of the reservation in the format "YYYY-MM-DD".

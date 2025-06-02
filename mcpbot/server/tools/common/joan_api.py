@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import StrEnum
 import re
 from typing import Any, Literal, TypedDict
 
@@ -20,6 +21,13 @@ class JoanLocation(TypedDict):
 class JoanSeat(TypedDict):
     id: str
     name: str
+
+
+class Reservation(StrEnum):
+    FREE = "free"
+    FULLY_BOOKED = "fully_booked"
+    RESERVATION_FOUND = "reservation_found"
+    RESERVATION_NOT_FOUND = "reservation_not_found"
 
 
 @dataclass
@@ -318,6 +326,11 @@ class JoanAPI:
         date: str,
         name: str | None = None,
     ) -> list[str]:
+        """Get the names of people who have a desk reservation on a given date.
+
+        If a specific name is provided, only return people whose names
+        match the provided name (case-insensitive).
+        """
         response = self.send_request(
             method="GET",
             url=f"/desk/v2/company/{self.company_id}/reservation",
@@ -344,6 +357,7 @@ class JoanAPI:
         user_id: str,
         date: str,
     ) -> str | None:
+        """Delete all desk reservations for a user on a given date."""
         reservation_ids = self.get_desk_reservation_by_day(user_id, date)
         if not reservation_ids:
             return None
@@ -355,6 +369,88 @@ class JoanAPI:
                 return_json=False,
             )
         return "Reservations deleted"
+
+    def get_free_parking_spot(
+        self,
+        email: str,
+        date: str,
+        start_time: str = "09:00",
+        end_time: str = "17:00",
+    ) -> list[str]:
+        """Get an available parking spot for a given date and time range."""
+        response = self.send_request(
+            method="GET",
+            url="/portal/assets/schedule/",
+            params={
+                "start": f"{date}T{start_time}:00.00Z",
+                "end": f"{date}T{end_time}:00.00Z",
+                "tz": TIMEZONE,
+            },
+        )
+
+        free_spots = []
+        for parking_spot in response["results"]:
+            booked_spots = parking_spot["schedule"]
+            if not booked_spots:
+                free_spots.append(parking_spot["id"])
+            else:
+                for reservation in booked_spots[0]["reservations"]:
+                    if reservation["user"]["email"] == email:
+                        return Reservation.RESERVATION_FOUND
+        if not free_spots:
+            return Reservation.FULLY_BOOKED
+        return free_spots[0]
+
+    def get_user_parking_spot(
+        self,
+        email: str,
+        date: str,
+        start_time: str = "09:00",
+        end_time: str = "17:00",
+    ) -> str:
+        """Get the parking spot ID for a user on a given date and time range."""
+        response = self.send_request(
+            method="GET",
+            url="/portal/assets/reservations/",
+            params={
+                "user_email": email,
+                "start": f"{date}T{start_time}:00.00Z",
+                "end": f"{date}T{end_time}:00.00Z",
+                "tz": TIMEZONE,
+            },
+        )
+        for reservation in response["results"]:
+            return reservation["id"]
+        return Reservation.RESERVATION_NOT_FOUND
+
+    def create_parking_reservation(
+        self,
+        email: str,
+        parking_spot_id: str,
+        date: str,
+        start_time: str = "09:00",
+        end_time: str = "17:00",
+    ) -> None:
+        """Book a parking spot for a given date and time range."""
+        self.send_request(
+            method="POST",
+            url="/portal/assets/reservations/",
+            params={
+                "asset_id": parking_spot_id,
+                "user_email": email,
+                "start": f"{date}T{start_time}:00.00Z",
+                "end": f"{date}T{end_time}:00.00Z",
+                "tz": TIMEZONE,
+            },
+        )
+
+    def delete_parking_reservation(self, reservation_id: str) -> None:
+        """Delete a parking reservation by its ID."""
+        self.send_request(
+            method="DELETE",
+            url=f"/portal/assets/reservations/{reservation_id}/",
+            return_json=False,
+        )
 
 
 JOAN_TIMESLOTS = JoanTimeslots(
