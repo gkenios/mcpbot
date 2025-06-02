@@ -14,6 +14,7 @@ def client_prompt() -> str:
 • Answer a question that is related to {COMPANY}, the office, parking, workdays/workhours or in general with any information that can be potentially be found in the company's Frequently Asked Questions (FAQ) or Employee handbook.
 • Book a desk for them in the office
 • Unbook a desk for them in the office
+• Find out if a person or which people are in the office on a given date
 
 When listing things (1, 2, 3 or dashes), you must use bullet points (•).
 For reference, today is {today} and the time is {time}. The day of the week is {weekday}. You MUST calculate the date correctly, if for example the user asks for a desk for next Wednesday or tomorrow.

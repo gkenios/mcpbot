@@ -313,6 +313,32 @@ class JoanAPI:
             return [desk["id"] for desk in response]
         return None
 
+    def get_people_in_the_office(
+        self,
+        date: str,
+        name: str | None = None,
+    ) -> list[str]:
+        response = self.send_request(
+            method="GET",
+            url=f"/desk/v2/company/{self.company_id}/reservation",
+            params={
+                "from": f"{date} 00:00:00",
+                "to": f"{date} 23:59:59",
+                "tz": TIMEZONE,
+            },
+        )
+        people = [
+            f"{element['user']['first_name']} {element['user']['last_name']}"
+            for element in response
+        ]
+        # If name is provided, filter to matche it
+        if name:
+            lower_name = name.lower()
+            people = [
+                person for person in people if lower_name in person.lower()
+            ]
+        return people
+
     def delete_desk_reservation(
         self,
         user_id: str,
