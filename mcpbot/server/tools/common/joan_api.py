@@ -1,9 +1,11 @@
 from dataclasses import dataclass
+from datetime import datetime
 from enum import StrEnum
 import re
 from typing import Any, Literal, TypedDict
 
 import httpx
+from pytz import timezone
 
 from mcpbot.shared.init import config
 
@@ -68,7 +70,11 @@ class JoanAPI:
             params=params if method == "GET" else None,
             json=params if method != "GET" else None,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as error:
+            print(response.text)
+            raise error
         if return_json:
             return response.json()
 
@@ -148,7 +154,7 @@ class JoanAPI:
 
     def create_desk_reservation(
         self,
-        user_id: str,
+        email: str,
         seat_id: str,
         date: str,
         time_from: str = "09:00",
@@ -164,7 +170,7 @@ class JoanAPI:
                 "to": time_to,
                 "tz": TIMEZONE,
                 "seat_id": seat_id,
-                "user_id": user_id,
+                "user_id": email,
             },
         )
         return None
@@ -382,8 +388,8 @@ class JoanAPI:
             method="GET",
             url="/portal/assets/schedule/",
             params={
-                "start": f"{date}T{start_time}:00.00Z",
-                "end": f"{date}T{end_time}:00.00Z",
+                "start": zone_to_utc_timestamp(f"{date}T{start_time}:00.00Z"),
+                "end": zone_to_utc_timestamp(f"{date}T{end_time}:00.00Z"),
                 "tz": TIMEZONE,
             },
         )
@@ -414,8 +420,8 @@ class JoanAPI:
             url="/portal/assets/reservations/",
             params={
                 "user_email": email,
-                "start": f"{date}T{start_time}:00.00Z",
-                "end": f"{date}T{end_time}:00.00Z",
+                "start": zone_to_utc_timestamp(f"{date}T{start_time}:00.00Z"),
+                "end": zone_to_utc_timestamp(f"{date}T{end_time}:00.00Z"),
                 "tz": TIMEZONE,
             },
         )
@@ -438,8 +444,8 @@ class JoanAPI:
             params={
                 "asset_id": parking_spot_id,
                 "user_email": email,
-                "start": f"{date}T{start_time}:00.00Z",
-                "end": f"{date}T{end_time}:00.00Z",
+                "start": zone_to_utc_timestamp(f"{date}T{start_time}:00.00Z"),
+                "end": zone_to_utc_timestamp(f"{date}T{end_time}:00.00Z"),
                 "tz": TIMEZONE,
             },
         )
@@ -451,6 +457,17 @@ class JoanAPI:
             url=f"/portal/assets/reservations/{reservation_id}/",
             return_json=False,
         )
+
+
+def zone_to_utc_timestamp(timestamp: str, time_zone: str = TIMEZONE) -> str:
+    """Convert a timestamp from a specific timezone to UTC."""
+    naive_dt = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
+    return (
+        timezone(time_zone)
+        .localize(naive_dt)
+        .astimezone(timezone("UTC"))
+        .strftime("%Y-%m-%dT%H:%M:%S.00Z")
+    )
 
 
 JOAN_TIMESLOTS = JoanTimeslots(

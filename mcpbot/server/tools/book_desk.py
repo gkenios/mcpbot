@@ -96,7 +96,7 @@ def book_desk(
             return f"While booking, someone else booked a desk and there are not enough desks. I booked {i} desks."
 
         api.create_desk_reservation(
-            user_id=user_id,
+            email=user_email,
             seat_id=seat_id,
             date=date,
             time_from=joan_timeslot.time_from,
