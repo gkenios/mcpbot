@@ -102,7 +102,6 @@ class JoanAPI:
             if user["email"] == email:
                 user_id = user["id"]
                 is_admin = user["groups"] != ["portal_user"]
-                print("User ID:", user_id)
                 return (user_id, is_admin)
         return None, False
 
@@ -170,7 +169,7 @@ class JoanAPI:
                 "to": time_to,
                 "tz": TIMEZONE,
                 "seat_id": seat_id,
-                "user_id": email,
+                "user_email": email,
             },
         )
         return None
