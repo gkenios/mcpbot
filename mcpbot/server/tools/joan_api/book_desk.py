@@ -33,13 +33,13 @@ def book_desk(
 
     Args:
         date: The date of the reservation in the format "YYYY-MM-DD".
-        timeslot: The time slot for the reservation.
-        city: The city where the office is located as Enum.
-        building: The name of the building to book.
-        floor: The floor number where the desk is located.
-        desk_type: The name of the desk to book.
-        desk_number_id: The ID of the desk to book.
-        people: The number of people to book desks for.
+        timeslot: The time slot for the reservation (Optional. Default: "all_day").
+        city: The city where the office is located (Optional. Default: "amsterdam").
+        building: The name of the building to book (Optional. Default: None).
+        floor: The floor number where the desk is located (Optional. Default: None).
+        desk_type: The name of the desk to book (Optional. Default: None).
+        desk_number_id: The ID of the desk to book (Optional. Default: None).
+        people: The number of people to book desks for (Optional. Default: None).
     """
     # Get email from context
     user_email = get_meta_context_value(context, "user_email")
@@ -66,7 +66,6 @@ def book_desk(
 
     # Get the building and floor IDs
     city = City(city)
-    print("Building:", building)
     building = (
         Building(building) if building else LOCATIONS[city]["default_building"]
     )

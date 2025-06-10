@@ -109,7 +109,11 @@ async def chat_streamer(
         tools=await client.get_tools(),
         prompt=client_prompt(),
     )
-    stream = agent.astream({"messages": messages}, stream_mode="messages")
+    stream = agent.astream(
+        {"messages": messages},
+        {"recursion_limit": 7},
+        stream_mode="messages",
+    )
     async for chunk, _ in stream:
         if isinstance(chunk, AIMessage):
             full_response.append(chunk.content)  # type: ignore[arg-type]

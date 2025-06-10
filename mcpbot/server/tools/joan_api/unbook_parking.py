@@ -21,9 +21,9 @@ def unbook_parking(
 
     Args:
         date: The date of the reservation in the format "YYYY-MM-DD".
-        timeslot: The time slot for the reservation.
-        start_time: The start time of the reservation in the format "HH:MM".
-        end_time: The end time of the reservation in the format "HH:MM".
+        timeslot: The time slot for the reservation (Optional. Default: "all_day").
+        start_time: The start time of the reservation in the format "HH:MM" (Optional. Default: None).
+        end_time: The end time of the reservation in the format "HH:MM" (Optional. Default: None).
     """
     # Context
     user_email = get_meta_context_value(context, "user_email")

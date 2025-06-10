@@ -19,10 +19,8 @@ def people_in_office(
 
     Args:
         date: The date of the reservation in the format "YYYY-MM-DD".
-        name: The name of the person to check. Default is None, which means
-            all people in the office will be returned, for that date.
-        building: The building to check. Default is None, which means all
-            buildings will be checked.
+        name: The name of the person to check (Optional. Default: None).
+        building: The building to check (Optional. Default: None).
     """
     if building:
         building = Building(building)
