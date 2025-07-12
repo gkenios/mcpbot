@@ -7,35 +7,38 @@ requires-python = ">=3.13"
 dependencies = [
     "azure-cosmos==4.9.0",
     "azure-identity==1.23.0",
-    "azure-keyvault-secrets==4.9.0",
-    "fastapi==0.115.12",
+    "azure-keyvault-secrets==4.10.0",
+    "fastapi==0.116.1",
     "google-auth==2.40.3",
     "jinja2==3.1.6",
-    "langchain-mcp-adapters==0.1.7",
-    "langchain-openai==0.3.21",
-    "langgraph==0.4.8",
+    "langchain-mcp-adapters==0.1.9",
+    "langchain-openai==0.3.27",
+    "langgraph==0.5.2",
     "pytz==2025.2",
     "types-pytz==2025.2.0.20250516",
 ]
 
 [dependency-groups]
 dev = [
-    "mypy==1.16.0",
+    "mypy==1.16.1",
     "pre-commit==4.2.0",
-    "ruff==0.11.13",
+    "ruff==0.12.3",
     "types-pyyaml==6.0.12.20250516",
 ]
 docs = [
     "mkdocs==1.6.1",
-    "mkdocs-material==9.6.14",
+    "mkdocs-material==9.6.15",
     "mkdocstrings-python==1.16.12",
     "termynal==0.13.0",
 ]
+evaluation = [
+    "mlflow==3.1.1",
+]
 local = [
-    "langchain-chroma==0.2.3",
+    "langchain-chroma==0.2.4",
 ]
 tests = [
-    "pytest==8.4.0",
+    "pytest==8.4.1",
 ]
 
 

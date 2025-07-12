@@ -45,3 +45,6 @@ chroma.log
 z.py
 faq.yml
 faq.json
+
+# MLFlow
+mlruns/*

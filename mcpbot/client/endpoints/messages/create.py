@@ -16,7 +16,7 @@ from mcpbot.shared.init import config
 from mcpbot.shared.services.database_chat import Message
 
 
-MESSAGE_LIMIT = 6
+MESSAGE_LIMIT = 10
 MESSAGE_MAP: dict[str, type[BaseMessage]] = {
     "human": HumanMessage,
     "ai": AIMessage,
@@ -125,7 +125,7 @@ async def chat_streamer(
     # Create the message in the database
     db_messages = config.databases.chat["messages"]
     db_conv = config.databases.chat["conversations"]
-    db_messages.delete_over_n_messages(conversation_id, MESSAGE_LIMIT)
+    db_messages.delete_over_n_messages(conversation_id, MESSAGE_LIMIT - 2)
     db_messages.create_message(**response.human.model_dump())
     db_messages.create_message(**response.ai.model_dump())
     db_conv.update_conversation_timestamp(conversation_id, user_id=user_id)
