@@ -5,11 +5,10 @@
 
 ---
 
-An implementation of an MCP client and server, using FastAPI.
+An implementation of an MCP client and server, using FastAPI. Designed for running locally or using Azure resources.
 
 ## To Do
-- [ ] Add metadata to the streaming answer.
-- [ ] Develop a client-side GUI for the MCP client with ReactJS.
+- [ ] Change OAuth2 to the new MCP OAuth2 flow
 
 ## Local
 To run locally
