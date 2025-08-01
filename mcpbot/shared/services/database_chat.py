@@ -254,6 +254,15 @@ class AzureCosmosChatDB(ChatDB):
     ):
         from azure.cosmos import CosmosClient
         from azure.cosmos.exceptions import CosmosResourceNotFoundError
+        import logging
+
+        # Suppress Azure SDK HTTP logs
+        logger_names = [
+            "azure.core.pipeline.policies.http_logging_policy",
+            "azure.cosmos",
+        ]
+        for logger_name in logger_names:
+            logging.getLogger(logger_name).setLevel(logging.WARNING)
 
         self.client = (
             CosmosClient(endpoint, api_key)

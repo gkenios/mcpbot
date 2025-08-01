@@ -95,8 +95,8 @@ async def chat_streamer(
     client = MultiServerMCPClient(
         {
             "mcpbot": {
-                "url": f"http://localhost:{PORT}/mcp",
-                "transport": "sse",
+                "url": f"http://localhost:{PORT}/mcp/",
+                "transport": "streamable_http",
                 "headers": {
                     "user_email": email,
                 },

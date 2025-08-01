@@ -6,37 +6,38 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "azure-cosmos==4.9.0",
-    "azure-identity==1.23.0",
+    "azure-identity==1.23.1",
     "azure-keyvault-secrets==4.10.0",
     "fastapi==0.116.1",
     "google-auth==2.40.3",
     "jinja2==3.1.6",
     "langchain-mcp-adapters==0.1.9",
-    "langchain-openai==0.3.27",
-    "langgraph==0.5.2",
-    "mcp==1.11.0",
+    "langchain-openai==0.3.28",
+    "langgraph==0.6.2",
+    "mcp==1.12.3",
     "pytz==2025.2",
     "types-pytz==2025.2.0.20250516",
 ]
 
 [dependency-groups]
 dev = [
-    "mypy==1.16.1",
+    "mypy==1.17.1",
     "pre-commit==4.2.0",
-    "ruff==0.12.3",
+    "ruff==0.12.7",
     "types-pyyaml==6.0.12.20250516",
 ]
 docs = [
     "mkdocs==1.6.1",
-    "mkdocs-material==9.6.15",
+    "mkdocs-material==9.6.16",
     "mkdocstrings-python==1.16.12",
     "termynal==0.13.0",
 ]
 evaluation = [
-    "mlflow==3.1.1",
+    "langchain>=0.3.27",
+    "mlflow==3.1.4",
 ]
 local = [
-    "langchain-chroma==0.2.4",
+    "langchain-chroma==0.2.5",
 ]
 tests = [
     "pytest==8.4.1",

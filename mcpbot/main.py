@@ -1,7 +1,9 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from mcp.server import FastMCP
-from mcp.server.sse import SseServerTransport
+from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from starlette.middleware.base import RequestResponseEndpoint
 
 from mcpbot.client.endpoints.auth.token import router as auth_router
@@ -24,7 +26,28 @@ from mcpbot.shared.config import CORS_ORIGINS
 
 
 TITLE = "MCP Client & Server"
-MCP_MESSAGES_ENDPOINT = "/mcp/messages/"
+
+
+# MCP Server
+mcp = FastMCP(name=TITLE)
+add_prompts_from_module(mcp, prompts)
+add_tools_from_module(mcp, tools)
+
+session_manager = StreamableHTTPSessionManager(
+    app=mcp._mcp_server, json_response=False, stateless=False
+)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for the FastAPI app."""
+    async with session_manager.run():
+        yield
+
+
+async def mcp_asgi_app(scope, receive, send):
+    """ASGI wrapper for the StreamableHTTP session manager."""
+    await session_manager.handle_request(scope, receive, send)
 
 
 # FastAPI
@@ -32,6 +55,7 @@ app = FastAPI(
     title=TITLE,
     swagger_ui_parameters={"defaultModelsExpandDepth": -1},
     docs_url="/",
+    lifespan=lifespan,
 )
 app.add_middleware(
     CORSMiddleware,
@@ -50,34 +74,7 @@ app.include_router(messages_delete.router_v1, tags=["Messages"])
 app.include_router(messages_list.router_v1, tags=["Messages"])
 app.include_router(messages_patch.router_v1, tags=["Messages"])
 
-# MCP Server
-sse = SseServerTransport(MCP_MESSAGES_ENDPOINT)
-mcp = FastMCP(name=TITLE)
-add_prompts_from_module(mcp, prompts)
-add_tools_from_module(mcp, tools)
-
-
-# MCP Server Routers
-@app.get("/mcp", tags=["MCP"])
-async def sse_endpoint(request: Request) -> Response:
-    async with sse.connect_sse(
-        request.scope,
-        request.receive,
-        request._send,
-    ) as (reader, writer):
-        await mcp._mcp_server.run(
-            reader,
-            writer,
-            mcp._mcp_server.create_initialization_options(),
-        )
-    return Response(status_code=200)
-
-
-@app.post(MCP_MESSAGES_ENDPOINT, tags=["MCP"])
-async def post_endpoint(request: Request) -> None:
-    return await sse.handle_post_message(
-        request.scope, request.receive, request._send
-    )
+app.mount("/mcp/", mcp_asgi_app)
 
 
 # Middleware for Authentication
