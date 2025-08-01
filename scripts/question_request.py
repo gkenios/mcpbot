@@ -8,6 +8,8 @@ from mcpbot.client.endpoints.messages.create import CreateMessageResponse
 
 
 OPTION = 1
+
+API_VERSION = 1
 EMAIL = f"georgios.gkenios@{COMPANY.lower()}.com"
 
 match OPTION:
@@ -18,11 +20,12 @@ match OPTION:
     case 3:
         QUESTION = "Can you unbook my desk for next Sunday?"
     case _:
-        raise SystemExit("Invalid option. Please choose 1, 2, or 3.")
+        print("Invalid option selected. Exiting...")
+        raise SystemExit(code=0)
 
 
 async def main() -> None:
-    # Get an acess token
+    # Get an access token
     provider_token = os.popen("gcloud auth print-identity-token").read().strip()
     response = httpx.post(
         url=f"http://localhost:{PORT}/token",
@@ -33,7 +36,7 @@ async def main() -> None:
     async with httpx.AsyncClient(timeout=None) as client:
         # Create a conversation
         response = await client.post(
-            url=f"http://localhost:{PORT}/v1/conversations",
+            url=f"http://localhost:{PORT}/v{API_VERSION}/conversations",
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()
@@ -42,7 +45,7 @@ async def main() -> None:
         # Send a message to the conversation
         async with client.stream(
             method="POST",
-            url=f"http://localhost:{PORT}/v1/conversations/{conversation_id}/messages",
+            url=f"http://localhost:{PORT}/v{API_VERSION}/conversations/{conversation_id}/messages",
             headers={"Authorization": f"Bearer {token}"},
             json={"message": QUESTION},
         ) as response:

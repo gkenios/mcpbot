@@ -97,9 +97,7 @@ async def chat_streamer(
             "mcpbot": {
                 "url": f"http://localhost:{PORT}/mcp/",
                 "transport": "streamable_http",
-                "headers": {
-                    "user_email": email,
-                },
+                "headers": {"user_email": email},
             }
         }
     )
