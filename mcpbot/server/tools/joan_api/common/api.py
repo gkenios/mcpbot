@@ -57,6 +57,7 @@ class JoanAPI:
             headers={"Authorization": f"Bearer {self.token}"},
             params=params if method == "GET" else None,
             json=params if method != "GET" else None,
+            timeout=15,
         )
         try:
             response.raise_for_status()
