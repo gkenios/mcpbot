@@ -15,12 +15,12 @@ models:
   embeddings:
     api_key: "{{ embeddings_key }}"  # "{{ <secret> }}" references a secret by name
     api_url: https://openai-devoteam.openai.azure.com/
-    api_version: "v1"  # Optional parameter
+    api_version: "2024-06-01"  # Optional parameter
     model: text-embedding-ada-002
   llm:
     api_key: "{{ llm_key }}"
     api_url: https://openai-devoteam.openai.azure.com/
-    api_version: "v1"
+    api_version: "2024-06-01"
     model: gpt-4o-mini
 
 secrets:
