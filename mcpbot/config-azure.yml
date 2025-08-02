@@ -17,14 +17,14 @@ databases:
 
 models:
   embeddings:
-    api_key: "{{ embeddings_key }}"
+    api_key: "{{ embeddings_key }}"  # "{{ <secret> }}" references a secret by name
     api_url: https://openai-devoteam.openai.azure.com/
-    api_version: "2024-10-21" # https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation#latest-ga-api-release
+    api_version: "v1" # Optional parameter
     model: text-embedding-ada-002
   llm:
-    api_key: "{{ llm_key }}"  # "{{ <secret> }}" references a secret by name
+    api_key: "{{ llm_key }}"
     api_url: https://openai-devoteam.openai.azure.com/
-    api_version: "2024-10-21"  # Optional parameter
+    api_version: "v1"
     model: gpt-4o-mini
 
 secrets:

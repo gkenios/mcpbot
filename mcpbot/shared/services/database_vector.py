@@ -81,6 +81,22 @@ class ChromaVectorDB(VectorDB):
             "metadata": result.metadata,
         }
 
+    def search_ids(self, question: str, method: str, n_docs: int) -> list[str]:
+        """Only used for evaluation purposes locally (recall, precision, F1)"""
+        method_map = {
+            "cosine": "similarity",
+            "euclidean": "similarity",
+        }
+        mapped_method = method_map[method]
+        return [
+            doc.id
+            for doc in self.vector_store.search(
+                query=question,
+                search_type=mapped_method,
+                k=n_docs,
+            )
+        ]
+
 
 class AzureCosmosVectorDB(VectorDB):
     def __init__(
