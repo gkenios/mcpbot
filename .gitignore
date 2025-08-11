@@ -42,10 +42,10 @@ chroma.log
 .chatdb/
 
 # Testing
-z.py
 faq.yml
 faq.json
 
 # MLFlow
 mlruns/*
 mlartifacts/*
+scripts/evaluation*

@@ -15,7 +15,6 @@ if WRITE:
         text = (
             f"Source: {document['source']} \n"
             f"Title: {document['title']} \n"
-            f"Question: {document['question']} \n"
             f"Answer: {document['answer']}"
         )
         metadata = {
